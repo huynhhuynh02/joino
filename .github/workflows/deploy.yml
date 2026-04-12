@@ -1,0 +1,43 @@
+name: 🚀 Deploy Joino to Production
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy via SSH (Password Auth)
+          uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }} # Using password instead of SSH Key
+          script: |
+            # Check if project directory exists, if not, clone it
+            if [ ! -d "${{ secrets.SERVER_PATH }}" ]; then
+              echo "📂 Initial cloning of Joino..."
+              mkdir -p $(dirname ${{ secrets.SERVER_PATH }})
+              git clone https://github.com/huynhhuynh02/joino.git ${{ secrets.SERVER_PATH }}
+            fi
+            
+            cd ${{ secrets.SERVER_PATH }}
+            
+            # Pull latest changes
+            git pull origin master
+            
+            # Build and Restart Containers using Production Config
+            # Note: Ensure .env is already present on the server or managed here
+            docker compose -f docker-compose.prod.yml build
+            docker compose -f docker-compose.prod.yml up -d
+            
+            # Run Database Migrations
+            docker exec joino_backend_prod npx prisma migrate deploy
+            
+            # Clean up old images
+            docker image prune -f
