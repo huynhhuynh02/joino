@@ -16,7 +16,7 @@ interface UIState {
   isCreateTaskOpen: boolean;
   createTaskProjectId: string | null;
   createTaskStatus: string | null;
-  openCreateTask: (projectId: string, status?: string) => void;
+  openCreateTask: (projectId?: string, status?: string) => void;
   closeCreateTask: () => void;
 
   // Create project modal
@@ -54,8 +54,8 @@ export const useUIStore = create<UIState>()(
       isCreateTaskOpen: false,
       createTaskProjectId: null,
       createTaskStatus: null,
-      openCreateTask: (projectId, status = 'TODO') =>
-        set({ isCreateTaskOpen: true, createTaskProjectId: projectId, createTaskStatus: status }),
+      openCreateTask: (projectId = '', status = 'TODO') =>
+        set({ isCreateTaskOpen: true, createTaskProjectId: projectId || null, createTaskStatus: status }),
       closeCreateTask: () =>
         set({ isCreateTaskOpen: false, createTaskProjectId: null, createTaskStatus: null }),
 
