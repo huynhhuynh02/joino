@@ -1,0 +1,22 @@
+{
+  "name": "joino",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Joino — Wrike-like project management (Monorepo)",
+  "scripts": {
+    "dev": "docker-compose up",
+    "dev:build": "docker-compose up --build",
+    "down": "docker-compose down",
+    "down:clean": "docker-compose down -v",
+    "logs:backend": "docker-compose logs -f backend",
+    "logs:frontend": "docker-compose logs -f frontend",
+    "db:migrate": "docker-compose exec backend npx prisma migrate dev",
+    "db:seed": "docker-compose exec backend npx prisma db seed",
+    "db:reset": "docker-compose exec backend npx prisma migrate reset --force",
+    "db:studio": "docker-compose exec backend npx prisma studio"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}

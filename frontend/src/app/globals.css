@@ -1,0 +1,273 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Brand Green & White ── */
+    --primary: 152 100% 33%;           /* #00A86B */
+    --primary-foreground: 0 0% 100%;   /* white */
+
+    /* ── Backgrounds ── */
+    --background: 0 0% 100%;           /* white */
+    --foreground: 222 47% 11%;         /* near-black */
+
+    /* ── Card ── */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    /* ── Popover ── */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* ── Secondary ── */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    /* ── Muted ── */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    /* ── Accent ── */
+    --accent: 152 60% 95%;             /* light green tint */
+    --accent-foreground: 152 100% 25%;
+
+    /* ── Destructive ── */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* ── Borders & Inputs ── */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 152 100% 33%;              /* green focus ring */
+
+    /* ── Radius ── */
+    --radius: 0.5rem;
+
+    /* ── Sidebar ── */
+    --sidebar-width: 240px;
+    --sidebar-bg: 222 47% 8%;          /* very dark blue-gray */
+    --sidebar-fg: 0 0% 90%;
+    --topbar-h: 56px;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 213 31% 91%;
+ 
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+ 
+    --popover: 222.2 47.4% 11.2%;
+    --popover-foreground: 213 31% 91%;
+ 
+    --border: 223 47% 12%;
+    --input: 223 47% 11%;
+ 
+    --card: 222.2 47.4% 8%;
+    --card-foreground: 213 31% 91%;
+ 
+    --primary: 152 100% 33%;
+    --primary-foreground: 210 40% 98%;
+ 
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+ 
+    --accent: 223 47% 11%;
+    --accent-foreground: 210 40% 98%;
+ 
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    --ring: 152 100% 33%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
+  }
+}
+
+@layer components {
+  /* ── App Layout ── */
+  .app-shell {
+    @apply flex h-screen overflow-hidden bg-background;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: hsl(var(--sidebar-bg));
+    @apply flex-shrink-0 flex-col h-full overflow-hidden;
+    transition: width 0.2s ease;
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium
+           text-white/60 hover:text-white hover:bg-white/10 cursor-pointer
+           transition-all duration-150;
+  }
+
+  .sidebar-item.active {
+    @apply text-white bg-primary/20 text-primary-400;
+  }
+
+  /* ── Main Content ── */
+  .main-content {
+    @apply flex-1 flex flex-col overflow-hidden;
+  }
+
+  /* ── Page Header ── */
+  .page-header {
+    @apply flex items-center justify-between px-6 py-4 bg-card border-b border-border;
+  }
+
+  /* ── View container ── */
+  .view-container {
+    @apply flex-1 overflow-auto p-6;
+  }
+
+  /* ── Priority Badge ── */
+  .priority-urgent { @apply bg-red-500/10 text-red-500 border-red-500/20; }
+  .priority-high   { @apply bg-orange-500/10 text-orange-500 border-orange-500/20; }
+  .priority-medium { @apply bg-yellow-500/10 text-yellow-500 border-yellow-500/20; }
+  .priority-low    { @apply bg-muted text-muted-foreground border-border/50; }
+
+  /* ── Status Badge ── */
+  .status-todo        { @apply bg-muted text-muted-foreground border-border/50; }
+  .status-in-progress { @apply bg-blue-500/10 text-blue-500 border-blue-500/20; }
+  .status-review      { @apply bg-amber-500/10 text-amber-500 border-amber-500/20; }
+  .status-done        { @apply bg-emerald-500/10 text-emerald-500 border-emerald-500/20; }
+
+  /* ── Card hover ── */
+  .task-card {
+    @apply bg-card border border-border rounded-lg p-3
+           hover:border-primary/40 hover:shadow-md
+           transition-all duration-150 cursor-pointer;
+  }
+
+  /* ── Kanban Column ── */
+  .kanban-column {
+    @apply w-72 flex-shrink-0 bg-muted/50 rounded-xl p-3 flex flex-col gap-2 border border-border;
+  }
+
+  /* ── Gantt bar ── */
+  .gantt-bar {
+    @apply absolute h-6 rounded-full bg-primary/80 hover:bg-primary
+           transition-colors cursor-pointer;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* ── Tiptap Rich Text Styles ── */
+.ProseMirror {
+  outline: none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  @apply text-muted-foreground/40;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Prose rendering (shared between editor & display) */
+.prose-custom h1, .prose-custom h2, .prose-custom h3 {
+  font-weight: 600;
+  margin-top: 0.75em;
+  margin-bottom: 0.25em;
+  line-height: 1.3;
+}
+.prose-custom h1 { font-size: 1.25rem; }
+.prose-custom h2 { font-size: 1.1rem; }
+.prose-custom h3 { font-size: 1rem; }
+.prose-custom p { margin-bottom: 0.5em; }
+.prose-custom ul, .prose-custom ol { padding-left: 1.25rem; margin-bottom: 0.5em; }
+.prose-custom ul { list-style-type: disc; }
+.prose-custom ol { list-style-type: decimal; }
+.prose-custom li { margin-bottom: 0.15em; }
+.prose-custom blockquote {
+  border-left: 3px solid #00A86B;
+  padding-left: 0.75em;
+  @apply text-muted-foreground;
+  margin: 0.5em 0;
+  font-style: italic;
+}
+.prose-custom code {
+  @apply bg-muted text-foreground/80;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.875em;
+  font-family: 'ui-monospace', 'monospace';
+}
+.prose-custom pre {
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 0.75em 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.85em;
+  margin: 0.5em 0;
+}
+.prose-custom pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+.prose-custom strong { font-weight: 600; @apply text-foreground; }
+.prose-custom em { font-style: italic; }
+
+/* ── Theme Templates ── */
+[data-theme="blue"] {
+  --primary: 221 83% 53%;
+  --ring: 221 83% 53%;
+}
+[data-theme="purple"] {
+  --primary: 262 83% 58%;
+  --ring: 262 83% 58%;
+}
+[data-theme="orange"] {
+  --primary: 24 95% 53%;
+  --ring: 24 95% 53%;
+}
+[data-theme="indigo"] {
+  --primary: 239 84% 67%;
+  --ring: 239 84% 67%;
+}
+[data-theme="rose"] {
+  --primary: 346 84% 61%;
+  --ring: 346 84% 61%;
+}
+[data-theme="teal"] {
+  --primary: 171 77% 41%;
+  --ring: 171 77% 41%;
+}
