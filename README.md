@@ -7,7 +7,7 @@
 
 **Joino** is a high-performance, **open-source project management platform** and a powerful **Wrike alternative**. Designed for teams that demand flexibility, speed, and a premium user experience, it serves as a comprehensive **self-hosted task management** solution for modern workflows.
 
-[**Live Demo**](#) | [**Documentation**](#) | [**Report Bug**](https://github.com/yourusername/joino/issues)
+[**Live Demo**](#) | [**Documentation**](#) | [**Report Bug**](https://github.com/huynhhuynh02/joino/issues)
 
 ---
 
@@ -61,7 +61,7 @@ The fastest way to get Joino running is using Docker.
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/joino.git
+   git clone https://github.com/huynhhuynh02/joino.git
    cd joino
    ```
 
@@ -85,13 +85,13 @@ The fastest way to get Joino running is using Docker.
 ## 📸 Screenshots
 
 ### Dashboard Overview
-![Dashboard Preview](https://raw.githubusercontent.com/yourusername/joino/main/assets/dashboard.png)
+![Dashboard Preview](https://raw.githubusercontent.com/huynhhuynh02/joino/main/assets/dashboard.png)
 
 ### Multi-View Task Management
-![Views Preview](https://raw.githubusercontent.com/yourusername/joino/main/assets/views.png)
+![Views Preview](https://raw.githubusercontent.com/huynhhuynh02/joino/main/assets/views.png)
 
 ### Team Collaboration & Inbox
-![Team Preview](https://raw.githubusercontent.com/yourusername/joino/main/assets/team.png)
+![Team Preview](https://raw.githubusercontent.com/huynhhuynh02/joino/main/assets/team.png)
 
 ---
 
@@ -125,9 +125,9 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 📞 Contact
 
-Joino - [@yourtwitter](https://twitter.com/yourtwitter) - email@example.com
+Joino - [huynhhuynh02@gmail.com](mailto:huynhhuynh02@gmail.com)
 
-Project Link: [https://github.com/yourusername/joino](https://github.com/yourusername/joino)
+Project Link: [https://github.com/huynhhuynh02/joino](https://github.com/huynhhuynh02/joino)
 
 ---
-*Developed with ❤️ by the Joino Team.*
+*Developed with ❤️ by huynhhuynh02.*
