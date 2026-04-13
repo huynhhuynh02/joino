@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
@@ -21,7 +21,12 @@ export default function LoginPage() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
   const [form, setForm] = useState({ email: '', password: '' });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const loginMutation = useMutation({
     mutationFn: (data: typeof form) =>
@@ -136,7 +141,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-semibold transition-all active:scale-[0.98]"
-              disabled={loginMutation.isPending}
+              disabled={!mounted || loginMutation.isPending}
             >
               {loginMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
