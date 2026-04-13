@@ -26,7 +26,10 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
+    const isAuthEndpoint = error.config?.url?.match(/\/api\/auth\/(login|register|accept-invite)/);
+    const isLoginPage = typeof window !== 'undefined' && window.location.pathname === '/login';
+
+    if (error.response?.status === 401 && typeof window !== 'undefined' && !isAuthEndpoint && !isLoginPage) {
       localStorage.removeItem('joino_token');
       localStorage.removeItem('joino_user');
       document.cookie = 'joino_token=; path=/; domain=' + window.location.hostname + '; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
