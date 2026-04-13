@@ -40,12 +40,11 @@ interface Notification {
   createdAt: string;
 }
 
-interface NotificationsResponse {
-  data: Notification[];
-  meta: { unreadCount: number };
+interface TopBarProps {
+  onSearch?: () => void;
 }
 
-export function TopBar() {
+export function TopBar({ onSearch }: TopBarProps) {
   const user = useAuthStore((s) => s.user);
   const openCreateProject = useUIStore((s) => s.openCreateProject);
   const queryClient = useQueryClient();
@@ -111,7 +110,7 @@ export function TopBar() {
       <div className="flex-1 max-w-md relative hidden sm:block">
         <div 
           className="relative group cursor-text"
-          onClick={() => setSearchOpen(true)}
+          onClick={() => onSearch ? onSearch() : setSearchOpen(true)}
         >
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
           <div className="pl-9 pr-3 bg-muted/50 border border-border hover:border-primary/20 transition-colors h-9 text-sm rounded-md flex items-center justify-between text-muted-foreground w-full">
