@@ -83,6 +83,27 @@ router.get('/', async (_req, res, next) => {
   }
 });
 
+// ─── Search users (for assignee picker) ──────────────────────────────────────
+router.get('/search', async (req, res, next) => {
+  try {
+    const { q } = z.object({ q: z.string().min(1) }).parse(req.query);
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { email: { contains: q, mode: 'insensitive' } },
+        ],
+        isActive: true,
+      },
+      select: { id: true, email: true, name: true, avatar: true },
+      take: 10,
+    });
+    res.json({ success: true, data: users });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ─── Get user by ID ───────────────────────────────────────────────────────────
 router.get('/:id', async (req, res, next) => {
   try {
@@ -197,26 +218,6 @@ router.put('/profile/password', async (req, res, next) => {
   }
 });
 
-// ─── Search users (for assignee picker) ──────────────────────────────────────
-router.get('/search', async (req, res, next) => {
-  try {
-    const { q } = z.object({ q: z.string().min(1) }).parse(req.query);
-    const users = await prisma.user.findMany({
-      where: {
-        OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { email: { contains: q, mode: 'insensitive' } },
-        ],
-        isActive: true,
-      },
-      select: { id: true, email: true, name: true, avatar: true },
-      take: 10,
-    });
-    res.json({ success: true, data: users });
-  } catch (err) {
-    next(err);
-  }
-});
 
 // ─── Deactivate user (Admin) ──────────────────────────────────────────────────
 router.put('/:id/deactivate', requireRole('ADMIN'), async (req, res, next) => {
