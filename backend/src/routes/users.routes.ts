@@ -56,6 +56,32 @@ router.post('/accept-invite', async (req, res, next) => {
 
 router.use(authenticate);
 
+// ─── Search users (MUST BE BEFORE /:id) ──────────────────────────────────────
+router.get('/search', async (req, res, next) => {
+  try {
+    const { q } = z.object({ q: z.string().min(1) }).parse(req.query);
+    console.log(`[UserSearch] Searching for: ${q}`);
+    
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { email: { contains: q, mode: 'insensitive' } },
+        ],
+        isActive: true,
+      },
+      select: { id: true, email: true, name: true, avatar: true },
+      take: 10,
+    });
+    
+    console.log(`[UserSearch] Found ${users.length} users`);
+    res.json({ success: true, data: users });
+  } catch (err) {
+    console.error('[UserSearch] Error:', err);
+    next(err);
+  }
+});
+
 // ─── List all users ─────────────────────────────────────────────
 router.get('/', async (_req, res, next) => {
   try {
@@ -78,27 +104,6 @@ router.get('/', async (_req, res, next) => {
       }
     }));
     res.json({ success: true, data });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// ─── Search users (for assignee picker) ──────────────────────────────────────
-router.get('/search', async (req, res, next) => {
-  try {
-    const { q } = z.object({ q: z.string().min(1) }).parse(req.query);
-    const users = await prisma.user.findMany({
-      where: {
-        OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { email: { contains: q, mode: 'insensitive' } },
-        ],
-        isActive: true,
-      },
-      select: { id: true, email: true, name: true, avatar: true },
-      take: 10,
-    });
-    res.json({ success: true, data: users });
   } catch (err) {
     next(err);
   }
