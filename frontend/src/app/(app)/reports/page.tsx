@@ -142,8 +142,13 @@ export default function ReportsPage() {
                       nameKey="status"
                     >
                       {(statusDist?.distribution || []).map((entry: any, index: number) => {
-                        const conf = STATUS_CONFIG[entry.status as keyof typeof STATUS_CONFIG];
-                        return <Cell key={`cell-${index}`} fill={conf?.bg?.replace('bg-', '') || COLORS[index % COLORS.length]} />;
+                        const colors: Record<string, string> = {
+                          TODO: '#94A3B8',
+                          IN_PROGRESS: '#3B82F6',
+                          REVIEW: '#F59E0B',
+                          DONE: '#10B981'
+                        };
+                        return <Cell key={`cell-${index}`} fill={colors[entry.status as string] || COLORS[index % COLORS.length]} />;
                       })}
                     </Pie>
                     <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }} />
