@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+RUN npm install
 
 # Add build arguments for Next.js environment variables
 ARG NEXT_PUBLIC_API_URL
