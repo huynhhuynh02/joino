@@ -7,9 +7,9 @@ export interface AuthUser {
   name: string;
   role: string;
   avatar: string | null;
-  dailySummary: boolean;
-  mentionsNotifications: boolean;
-  assignmentsNotifications: boolean;
+  dailySummary?: boolean;
+  mentionsNotifications?: boolean;
+  assignmentsNotifications?: boolean;
 }
 
 interface AuthState {
