@@ -51,9 +51,9 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (user) {
-      setPrefDaily(user.dailySummary);
-      setPrefMentions(user.mentionsNotifications);
-      setPrefAssignments(user.assignmentsNotifications);
+      setPrefDaily(user.dailySummary ?? true);
+      setPrefMentions(user.mentionsNotifications ?? true);
+      setPrefAssignments(user.assignmentsNotifications ?? true);
     }
   }, [user]);
 
