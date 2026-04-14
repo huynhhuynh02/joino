@@ -105,47 +105,51 @@ networks:
 
 ---
 
-## 🌐 3. Automated Nginx Setup
+## 🌐 3. Automated Nginx & SSL Setup
 
-Joino includes a pre-configured Nginx container in `docker-compose.prod.yml`. This container handles:
-- Routing `/` to the Frontend.
-- Routing `/api` to the Backend.
-- Gzip compression and security headers.
+Joino includes a pre-configured Nginx container and Certbot service in `docker-compose.prod.yml`.
 
-You don't need to install Nginx on your host machine unless you want to use it as an additional layer. By default, the Nginx container listens on port **80**.
+### Initial SSL Setup
+Before starting the full stack, you need to generate the initial SSL certificates:
 
-**To enable SSL (HTTPS):**
-1. Install Certbot on your host.
-2. Run `certbot certonly --standalone -d yourdomain.com`.
-3. Map the SSL certificates into the Nginx container by uncommenting the volumes in `docker-compose.prod.yml`.
+1.  **Configure `.env`**: Ensure `DOMAIN_NAME` and URLs are set to `joino.cloud`.
+2.  **Run Initialization**:
+    ```bash
+    chmod +x init-ssl.sh
+    ./init-ssl.sh
+    ```
+    *Note: Ensure port 80 is not being used by any other service on the host during this step.*
+
+### Automatic Renewal
+The `certbot` service in `docker-compose.prod.yml` will automatically check for renewals every 12 hours.
 
 ---
 
 ## 🚀 4. Deployment Steps
 
-1. **Upload code to server:**
-   ```bash
-   git clone https://github.com/huynhhuynh02/joino.git
-   cd joino
-   ```
+1.  **Upload code to server:**
+    ```bash
+    git clone https://github.com/huynhhuynh02/joino.git
+    cd joino
+    ```
 
-2. **Configure production environment:**
-   `nano .env` (Paste your production config).
+2.  **Configure production environment:**
+    `nano .env` (Paste your production config using `joino.cloud`).
 
-3. **Build and start containers:**
-   ```bash
-   docker compose -f docker-compose.prod.yml up -d
-   ```
+3.  **Bootstrap SSL:**
+    ```bash
+    ./init-ssl.sh
+    ```
 
-4. **Initialize Database:**
-   ```bash
-   docker exec -it joino_backend_prod npx prisma migrate deploy
-   ```
+4.  **Build and start containers:**
+    ```bash
+    docker compose -f docker-compose.prod.yml up -d --build
+    ```
 
-5. **Setup SSL:**
-   ```bash
-   sudo certbot --nginx -d app.yourdomain.com -d api.yourdomain.com
-   ```
+5.  **Initialize Database:**
+    ```bash
+    docker exec -it joino_backend_prod npx prisma migrate deploy
+    ```
 
 ---
 
