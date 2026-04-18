@@ -58,6 +58,24 @@ async function main() {
 
   console.log('✅ Users created');
 
+  // ─── Organizations ────────────────────────────────────────────────────────────
+  const org1 = await prisma.organization.create({
+    data: {
+      name: 'Acme Corp',
+      slug: 'acme-corp',
+      members: {
+        create: [
+          { userId: admin.id, role: 'OWNER' },
+          { userId: alice.id, role: 'ADMIN' },
+          { userId: bob.id, role: 'MEMBER' },
+          { userId: carol.id, role: 'MEMBER' },
+        ],
+      },
+    },
+  });
+
+  console.log('✅ Organizations created');
+
   // ─── Projects ───────────────────────────────────────────────────────────────
   const project1 = await prisma.project.create({
     data: {
@@ -68,6 +86,7 @@ async function main() {
       startDate: new Date('2026-01-01'),
       endDate: new Date('2026-03-31'),
       ownerId: admin.id,
+      organizationId: org1.id,
       members: {
         create: [
           { userId: admin.id, role: MemberRole.OWNER },
@@ -88,6 +107,7 @@ async function main() {
       startDate: new Date('2026-02-01'),
       endDate: new Date('2026-06-30'),
       ownerId: alice.id,
+      organizationId: org1.id,
       members: {
         create: [
           { userId: alice.id, role: MemberRole.OWNER },
@@ -107,6 +127,7 @@ async function main() {
       startDate: new Date('2026-01-15'),
       endDate: new Date('2026-03-15'),
       ownerId: carol.id,
+      organizationId: org1.id,
       members: {
         create: [
           { userId: carol.id, role: MemberRole.OWNER },

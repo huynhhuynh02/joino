@@ -12,10 +12,11 @@ import {
   closestCorners,
   KeyboardSensor,
   PointerSensor,
-  useSensor,
   useSensors,
+  useSensor,
   DragStartEvent,
   DragEndEvent,
+  useDroppable,
 } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -90,6 +91,11 @@ function BoardColumn({ status, label, dotColor, tasks, projectId }: any) {
   const openCreateTask = useUIStore((s) => s.openCreateTask);
   const taskIds = useMemo(() => tasks.map((t: any) => t.id), [tasks]);
 
+  const { setNodeRef } = useDroppable({
+    id: `column-${status}`,
+    data: { type: 'Column', status },
+  });
+
   return (
     <div className="kanban-column bg-secondary/30 flex flex-col h-full rounded-xl w-72 flex-shrink-0 mr-4 border border-border">
       <div className="flex items-center justify-between mb-3 px-3 pt-3">
@@ -110,7 +116,10 @@ function BoardColumn({ status, label, dotColor, tasks, projectId }: any) {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar space-y-2 pb-4 px-1 min-h-[150px]">
+      <div 
+        ref={setNodeRef}
+        className="flex-1 overflow-y-auto no-scrollbar space-y-2 pb-4 px-2 min-h-[150px] transition-colors"
+      >
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {tasks.map((task: any) => (
             <SortableTaskCard key={task.id} task={task} />
@@ -176,7 +185,23 @@ export function TaskBoard({ tasks, projectId }: { tasks: any[]; projectId: strin
     const activeTaskIndex = localTasks.findIndex(t => t.id === activeId);
     if (activeTaskIndex < 0) return;
 
-    // The over could be another task, or potentially the column? Right now we only have sorting contexts for tasks.
+    // Handle dropping on an empty column or a column generally
+    const isOverColumn = String(overId).startsWith('column-');
+    if (isOverColumn) {
+      const columnStatus = String(overId).replace('column-', '');
+      const activeObj = localTasks[activeTaskIndex];
+      
+      const newTasks = [...localTasks];
+      newTasks[activeTaskIndex] = { ...activeObj, status: columnStatus };
+      setLocalTasks(newTasks);
+
+      const maxPosition = Math.max(0, ...localTasks.filter(t => t.status === columnStatus).map(t => t.position));
+      
+      updateTask.mutate({ id: activeObj.id, status: columnStatus, position: maxPosition + 1 });
+      return;
+    }
+
+    // Handle dropping on a task
     const overTask = localTasks.find(t => t.id === overId);
     
     if (overTask) {

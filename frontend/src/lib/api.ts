@@ -18,6 +18,12 @@ apiClient.interceptors.request.use((config) => {
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Multi-tenant Org Context
+    const currentOrgId = localStorage.getItem('joino_current_org');
+    if (currentOrgId) {
+      config.headers['x-organization-id'] = currentOrgId;
+    }
   }
   return config;
 });

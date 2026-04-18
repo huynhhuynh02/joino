@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../config/database';
-import { authenticate } from '../middlewares/auth.middleware';
+import { authenticate, requireOrganization } from '../middlewares/auth.middleware';
 import { requireProjectAccess } from '../middlewares/rbac.middleware';
 import { MemberRole } from '@prisma/client';
 
 const router = Router();
 router.use(authenticate);
+router.use(requireOrganization);
 
 const ProjectSchema = z.object({
   name: z.string().min(1).max(255),
@@ -22,6 +23,7 @@ router.get('/', async (req, res, next) => {
     const userId = req.user!.id;
     const projects = await prisma.project.findMany({
       where: {
+        organizationId: req.organizationId,
         OR: [
           { ownerId: userId },
           { members: { some: { userId } } },
@@ -55,6 +57,7 @@ router.post('/', async (req, res, next) => {
         startDate: body.startDate ? new Date(body.startDate) : null,
         endDate: body.endDate ? new Date(body.endDate) : null,
         ownerId: userId,
+        organizationId: req.organizationId!,
         members: {
           create: [{ userId, role: MemberRole.OWNER }],
         },
@@ -181,13 +184,13 @@ router.get('/stats/dashboard', async (req, res, next) => {
       // Total tasks across user's projects
       prisma.task.count({
         where: {
-          project: { members: { some: { userId } } },
+          project: { organizationId: req.organizationId, members: { some: { userId } } },
           parentId: null,
         },
       }),
       // My assigned tasks
       prisma.task.count({
-        where: { assigneeId: userId, status: { not: 'DONE' } },
+        where: { assigneeId: userId, status: { not: 'DONE' }, project: { organizationId: req.organizationId } },
       }),
       // Overdue tasks
       prisma.task.count({
@@ -195,12 +198,13 @@ router.get('/stats/dashboard', async (req, res, next) => {
           assigneeId: userId,
           status: { not: 'DONE' },
           dueDate: { lt: new Date() },
+          project: { organizationId: req.organizationId },
         },
       }),
       // Completed this week
       prisma.task.count({
         where: {
-          project: { members: { some: { userId } } },
+          project: { organizationId: req.organizationId, members: { some: { userId } } },
           status: 'DONE',
           updatedAt: {
             gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
@@ -210,7 +214,7 @@ router.get('/stats/dashboard', async (req, res, next) => {
       // Recent activity
       prisma.activity.findMany({
         where: {
-          task: { project: { members: { some: { userId } } } },
+          task: { project: { organizationId: req.organizationId, members: { some: { userId } } } },
         },
         include: {
           user: { select: { id: true, name: true, avatar: true } },

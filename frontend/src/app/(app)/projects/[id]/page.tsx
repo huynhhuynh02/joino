@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useUIStore } from '@/stores/uiStore';
-import { Plus, ListTodo, KanbanSquare, CalendarDays, Table2, Loader2, Search, Settings } from 'lucide-react';
+import { Plus, ListTodo, KanbanSquare, CalendarDays, Table2, Loader2, Search, Settings, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TaskList } from './components/TaskList';
@@ -12,6 +12,7 @@ import { TaskBoard } from './components/TaskBoard';
 import { TaskGantt } from './components/TaskGantt';
 import { TaskTable } from './components/TaskTable';
 import { ProjectSettingsModal } from './components/ProjectSettingsModal';
+import { AIProjectDashboard } from './components/AIProjectDashboard';
 import {
   TaskFilterBar,
   DEFAULT_FILTERS,
@@ -28,7 +29,7 @@ interface ProjectDetailProps {
 export default function ProjectDetailPage({ params }: ProjectDetailProps) {
   const { id: projectId } = use(params);
   const openCreateTask = useUIStore((s) => s.openCreateTask);
-  const [view, setView] = useState<'list' | 'board' | 'gantt' | 'table'>('list');
+  const [view, setView] = useState<'list' | 'board' | 'gantt' | 'table' | 'ai'>('list');
   const [filters, setFilters] = useState<TaskFilters>(DEFAULT_FILTERS);
   const [groupBy, setGroupBy] = useState<GroupByField>('status');
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -156,6 +157,9 @@ export default function ProjectDetailPage({ params }: ProjectDetailProps) {
             <TabsTrigger value="table" className="h-6 text-xs px-2.5 rounded data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm">
               <Table2 className="w-3.5 h-3.5 mr-1.5" /> Table
             </TabsTrigger>
+            <TabsTrigger value="ai" className="h-6 text-xs px-2.5 rounded data-[state=active]:bg-card data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm text-indigo-500 font-medium">
+              <Sparkles className="w-3.5 h-3.5 mr-1.5" /> AI Insights
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -186,6 +190,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailProps) {
             {view === 'board' && <TaskBoard tasks={rawTasks || []} projectId={projectId} />}
             {view === 'gantt' && <TaskGantt tasks={rawTasks || []} projectId={projectId} color={project.color} />}
             {view === 'table' && <TaskTable tasks={tasks} projectId={projectId} />}
+            {view === 'ai'    && <AIProjectDashboard projectId={projectId} />}
           </div>
         )}
       </div>

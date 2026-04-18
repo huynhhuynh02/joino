@@ -25,6 +25,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [theme]);
 
+  // Initialize Organization Context
+  const { currentOrganizationId, setCurrentOrganizationId, isAuthenticated } = require('@/stores/authStore').useAuthStore();
+  const { api } = require('@/lib/api');
+  
+  useEffect(() => {
+    if (isAuthenticated && !currentOrganizationId) {
+      api.get('/api/organizations').then((orgs: any[]) => {
+        if (orgs.length > 0) {
+          setCurrentOrganizationId(orgs[0].id);
+          // Reload to cleanly apply the new context across queries
+          window.location.reload();
+        }
+      }).catch(console.error);
+    }
+  }, [isAuthenticated, currentOrganizationId, setCurrentOrganizationId]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger shortcuts if typing inside input/textarea

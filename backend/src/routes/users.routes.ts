@@ -2,7 +2,7 @@ import { Router } from 'express';
 import path from 'path';
 import { z } from 'zod';
 import { prisma } from '../config/database';
-import { authenticate } from '../middlewares/auth.middleware';
+import { authenticate, requireOrganization } from '../middlewares/auth.middleware';
 import { requireRole } from '../middlewares/rbac.middleware';
 import { sendInviteEmail } from '../config/email';
 import { upload } from '../middlewares/upload.middleware';
@@ -20,29 +20,47 @@ router.post('/accept-invite', async (req, res, next) => {
       password: z.string().min(6),
     }).parse(req.body);
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as any;
-    if (decoded.type !== 'invite' || !decoded.email) {
-      return res.status(400).json({ success: false, message: 'Invalid token' });
+    const invitation = await prisma.invitation.findUnique({
+      where: { token },
+      include: { organization: true },
+    });
+
+    if (!invitation || invitation.status !== 'PENDING' || invitation.expiresAt < new Date()) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired invite token' });
     }
 
-    const user = await prisma.user.findUnique({ where: { email: decoded.email } });
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-
-    if (user.isActive) {
-      return res.status(400).json({ success: false, message: 'Invite already accepted' });
-    }
-
+    let user = await prisma.user.findUnique({ where: { email: invitation.email } });
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.user.update({
-      where: { id: user.id },
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: invitation.email,
+          name,
+          passwordHash: hashedPassword,
+          isActive: true,
+        },
+      });
+    } else {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { passwordHash: hashedPassword, isActive: true },
+      });
+    }
+
+    // Add user to organization
+    await prisma.organizationMember.create({
       data: {
-        name,
-        passwordHash: hashedPassword,
-        isActive: true,
+        userId: user.id,
+        organizationId: invitation.organizationId,
+        role: invitation.role,
       },
+    });
+
+    // Complete invitation
+    await prisma.invitation.update({
+      where: { id: invitation.id },
+      data: { status: 'ACCEPTED' },
     });
 
     res.json({ success: true, message: 'Invite accepted successfully' });
@@ -278,39 +296,39 @@ router.put('/:id/role', requireRole('ADMIN'), async (req, res, next) => {
 });
 
 // ─── Invite user (Admin) ─────────────────────────────────────────────────────
-router.post('/invite', requireRole('ADMIN'), async (req, res, next) => {
+router.post('/invite', requireOrganization, async (req, res, next) => {
   try {
-    const { email, role, name } = z.object({
+    // Only ALLOW OWNER or ADMIN of the current organization to invite.
+    if (req.orgRole !== 'OWNER' && req.orgRole !== 'ADMIN') {
+      return res.status(403).json({ success: false, message: 'Must be an Organization Admin' });
+    }
+
+    const { email, role } = z.object({
       email: z.string().email(),
-      name: z.string().optional(),
       role: z.enum(['ADMIN', 'MANAGER', 'MEMBER']).default('MEMBER'),
     }).parse(req.body);
 
-    const userName = name || email.split('@')[0];
-
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      if (!existingUser.isActive) {
-        // Reactivate
-        await prisma.user.update({ where: { id: existingUser.id }, data: { isActive: true, role } });
-        return res.json({ success: true, message: 'User reactivated successfully' });
+    const existingMember = await prisma.organizationMember.findFirst({
+      where: {
+        organizationId: req.organizationId,
+        user: { email }
       }
-      return res.status(400).json({ success: false, message: 'User already exists in workspace' });
+    });
+
+    if (existingMember) {
+      return res.status(400).json({ success: false, message: 'User is already a member of this workspace' });
     }
 
-    const token = jwt.sign(
-      { email, type: 'invite' },
-      process.env.JWT_SECRET || 'secret',
-      { expiresIn: '7d' }
-    );
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
 
-    const newUser = await prisma.user.create({
+    const invitation = await prisma.invitation.create({
       data: {
         email,
-        name: userName,
-        passwordHash: null,
-        role,
-        isActive: false, // inactive until accepted
+        role: role as any,
+        organizationId: req.organizationId!,
+        invitedById: req.user!.id,
+        expiresAt,
       },
     });
 
@@ -318,10 +336,10 @@ router.post('/invite', requireRole('ADMIN'), async (req, res, next) => {
       to: email,
       inviterName: req.user!.name,
       role,
-      token,
+      token: invitation.token,
     });
 
-    res.json({ success: true, data: { id: newUser.id, email: newUser.email } });
+    res.json({ success: true, data: { id: invitation.id, email: invitation.email } });
   } catch (err) {
     next(err);
   }

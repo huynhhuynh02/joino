@@ -29,6 +29,8 @@ import {
 import { getInitials } from '@/lib/utils';
 import { useState } from 'react';
 
+import { OrganizationSwitcher } from './OrganizationSwitcher';
+
 interface Project {
   id: string;
   name: string;
@@ -43,7 +45,6 @@ const NAV_ITEMS = [
 ];
 
 const BOTTOM_NAV = [
-  { label: 'Team', icon: Users, href: '/team' },
   { label: 'Settings', icon: Settings, href: '/settings' },
 ];
 
@@ -84,6 +85,9 @@ export function Sidebar({ isMobile }: SidebarProps = {}) {
           </div>
           <span className="text-white font-bold text-lg tracking-tight">Joino</span>
         </div>
+
+        {/* Workspace Switcher */}
+        <OrganizationSwitcher />
 
         {/* Search Bar */}
         <div className="px-3 pt-4 pb-2">

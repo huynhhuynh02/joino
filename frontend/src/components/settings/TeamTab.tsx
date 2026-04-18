@@ -28,7 +28,7 @@ interface User {
   };
 }
 
-export default function TeamPage() {
+export function TeamTab() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const currentUser = useAuthStore(s => s.user);
@@ -82,7 +82,7 @@ export default function TeamPage() {
   }, [users, search]);
 
   return (
-    <div className="view-container">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">

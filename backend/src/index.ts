@@ -16,6 +16,10 @@ import searchRoutes from './routes/search.routes';
 import reportsRoutes from './routes/reports.routes';
 import customFieldRoutes from './routes/custom-fields.routes';
 import settingsRoutes from './routes/settings.routes';
+import folderRoutes from './routes/folders.routes';
+import dependencyRoutes from './routes/dependencies.routes';
+import organizationRoutes from './routes/organizations.routes';
+import aiRoutes from './routes/ai.routes';
 import { errorHandler } from './middlewares/error.middleware';
 import { DigestService } from './services/digest.service';
 
@@ -54,6 +58,7 @@ const apiLimiter = rateLimit({
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/organizations', apiLimiter, organizationRoutes);
 app.use('/api/users', apiLimiter, userRoutes);
 app.use('/api/projects', apiLimiter, projectRoutes);
 app.use('/api/tasks', apiLimiter, taskRoutes);
@@ -65,6 +70,9 @@ app.use('/api/search', apiLimiter, searchRoutes);
 app.use('/api/reports', apiLimiter, reportsRoutes);
 app.use('/api/custom-fields', apiLimiter, customFieldRoutes);
 app.use('/api/settings', apiLimiter, settingsRoutes);
+app.use('/api/folders', apiLimiter, folderRoutes);
+app.use('/api/dependencies', apiLimiter, dependencyRoutes);
+app.use('/api/ai', apiLimiter, aiRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {

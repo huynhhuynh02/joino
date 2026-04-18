@@ -16,8 +16,8 @@ import {
 } from '@/lib/utils';
 import {
   Calendar, User, Flag, CheckSquare, MessageSquare, Paperclip, Clock, X,
-  Send, ChevronDown, Download, Trash2, Loader2 as Spinner, Link2, Copy,
-  MoreHorizontal, Edit2, Check, Plus, ChevronRight, ExternalLink, FolderOpen,
+  Send, ChevronDown, Download, Trash2, Loader2 as Spinner, Loader2, Link2, Copy,
+  MoreHorizontal, Edit2, Check, Plus, ChevronRight, ExternalLink, FolderOpen, Sparkles,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import {
@@ -230,6 +230,19 @@ export function TaskDetailPanel() {
     queryClient.invalidateQueries({ queryKey: ['task', selectedTaskId] });
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
   };
+
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+
+  const summarizeComments = useMutation({
+    mutationFn: () => api.post(`/api/ai/summarize-task/${selectedTaskId}`),
+    onSuccess: (res: any) => {
+      setAiSummary(res.data);
+      toast({ title: 'Summary generated ✨' });
+    },
+    onError: (err: any) => {
+      toast({ title: 'Failed to summarize', description: err.response?.data?.message || 'Check AI settings', variant: 'destructive' });
+    }
+  });
 
   const updateTask = useMutation({
     mutationFn: (data: Record<string, unknown>) => api.put(`/api/tasks/${selectedTaskId}`, data),
@@ -945,14 +958,14 @@ export function TaskDetailPanel() {
                   <div className="flex gap-4 border-b border-border/50">
                     <button
                       className={cn(
-                        'text-xs font-semibold pb-2 border-b-2 transition-colors',
+                        'text-xs font-semibold pb-2 border-b-2 transition-colors flex items-center gap-1.5',
                         activeTab === 'comments'
                           ? 'border-primary text-primary'
                           : 'border-transparent text-muted-foreground/60 hover:text-muted-foreground'
                       )}
                       onClick={() => setActiveTab('comments')}
                     >
-                      Comments {task.comments.length > 0 && `(${task.comments.length})`}
+                      <span>Comments {task.comments.length > 0 && `(${task.comments.length})`}</span>
                     </button>
                     <button
                       className={cn(
@@ -980,6 +993,30 @@ export function TaskDetailPanel() {
 
                   {activeTab === 'comments' && (
                     <div className="space-y-4">
+                      {task.comments.length > 0 && (
+                        <div className="flex justify-end mb-2">
+                           <Button 
+                             size="sm" 
+                             variant="outline" 
+                             className="h-7 text-[10px] gap-1.5 text-indigo-500 border-indigo-200 hover:bg-indigo-50"
+                             onClick={() => summarizeComments.mutate()}
+                             disabled={summarizeComments.isPending}
+                           >
+                             {summarizeComments.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                             Summarize with AI
+                           </Button>
+                        </div>
+                      )}
+
+                      {aiSummary && (
+                        <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 p-4 rounded-xl text-sm text-foreground/80 mb-6">
+                           <h4 className="flex items-center gap-2 font-bold text-indigo-600 mb-2">
+                             <Sparkles className="w-4 h-4" /> AI Summary
+                           </h4>
+                           <div className="prose-custom whitespace-pre-wrap">{aiSummary}</div>
+                        </div>
+                      )}
+
                       {task.comments.length === 0 ? (
                         <p className="text-xs text-muted-foreground/60 text-center py-8">No comments yet — be the first!</p>
                       ) : (

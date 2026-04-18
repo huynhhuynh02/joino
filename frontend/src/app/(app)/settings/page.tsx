@@ -18,7 +18,8 @@ import { useRef, useEffect } from 'react';
 import { ChangePasswordModal } from '@/components/user/ChangePasswordModal';
 import { useTheme } from 'next-themes';
 import { useUIStore, AppTheme } from '@/stores/uiStore';
-import { Check } from 'lucide-react';
+import { Check, Users } from 'lucide-react';
+import { TeamTab } from '@/components/settings/TeamTab';
 
 export default function SettingsPage() {
   const { user, setUser } = useAuthStore();
@@ -29,15 +30,14 @@ export default function SettingsPage() {
   const [name, setName] = useState(user?.name || '');
   const [activeTab, setActiveTab] = useState('profile');
   const [wsName, setWsName] = useState('');
-  const [inviteEmail, setInviteEmail] = useState('');
   const [prefDaily, setPrefDaily] = useState(user?.dailySummary ?? true);
   const [prefMentions, setPrefMentions] = useState(user?.mentionsNotifications ?? true);
   const [prefAssignments, setPrefAssignments] = useState(user?.assignmentsNotifications ?? true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: settings } = useQuery({
-    queryKey: ['settings'],
-    queryFn: () => api.get<Record<string, string>>('/api/settings'),
+  const { data: organization } = useQuery({
+    queryKey: ['current-organization'],
+    queryFn: () => api.get<any>('/api/organizations/current'),
     enabled: user?.role === 'ADMIN',
   });
 
@@ -46,8 +46,8 @@ export default function SettingsPage() {
   }, [user?.name]);
 
   useEffect(() => {
-    if (settings?.workspace_name) setWsName(settings.workspace_name);
-  }, [settings]);
+    if (organization?.name) setWsName(organization.name);
+  }, [organization]);
 
   useEffect(() => {
     if (user) {
@@ -99,28 +99,14 @@ export default function SettingsPage() {
     onError: () => toast({ title: 'Failed to update preferences', variant: 'destructive' })
   });
 
-  const updateSettings = useMutation({
-    mutationFn: (data: Record<string, string>) => api.put('/api/settings', data),
+  const updateOrganization = useMutation({
+    mutationFn: (data: { name: string }) => api.put('/api/organizations/current', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
-      toast({ title: 'Workspace settings updated' });
+      queryClient.invalidateQueries({ queryKey: ['current-organization'] });
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      toast({ title: 'Workspace updated successfully' });
     },
-    onError: () => toast({ title: 'Failed to update settings', variant: 'destructive' })
-  });
-
-  const inviteMember = useMutation({
-    mutationFn: (email: string) => api.post('/api/users/invite', { email }),
-    onSuccess: () => {
-      setInviteEmail('');
-      toast({ title: 'Invitation sent successfully' });
-    },
-    onError: (err: any) => {
-      toast({ 
-        title: 'Failed to send invitation', 
-        description: err.response?.data?.message || 'Check the email and try again.',
-        variant: 'destructive' 
-      });
-    }
+    onError: () => toast({ title: 'Failed to update workspace', variant: 'destructive' })
   });
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -175,15 +161,27 @@ export default function SettingsPage() {
             </TabsTrigger>
             
             {user?.role === 'ADMIN' && (
-              <TabsTrigger 
-                value="workspace" 
-                className={cn(
-                  "w-full justify-start rounded-md px-3 py-2 text-sm font-medium transition-colors data-[state=active]:bg-primary/5 data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-none"
-                )}
-              >
-                <Building className="w-4 h-4 mr-2" />
-                Workspace (Admin)
-              </TabsTrigger>
+              <>
+                <TabsTrigger 
+                  value="workspace" 
+                  className={cn(
+                    "w-full justify-start rounded-md px-3 py-2 text-sm font-medium transition-colors data-[state=active]:bg-primary/5 data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-none"
+                  )}
+                >
+                  <Building className="w-4 h-4 mr-2" />
+                  Workspace (Admin)
+                </TabsTrigger>
+                
+                <TabsTrigger 
+                  value="team" 
+                  className={cn(
+                    "w-full justify-start rounded-md px-3 py-2 text-sm font-medium transition-colors data-[state=active]:bg-primary/5 data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-none"
+                  )}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Team Management
+                </TabsTrigger>
+              </>
             )}
           </TabsList>
 
@@ -409,47 +407,22 @@ export default function SettingsPage() {
                       />
                     </div>
                     <Button 
-                      onClick={() => updateSettings.mutate({ workspace_name: wsName })}
-                      disabled={updateSettings.isPending || wsName === settings?.workspace_name}
+                      onClick={() => updateOrganization.mutate({ name: wsName })}
+                      disabled={updateOrganization.isPending || wsName === organization?.name}
                       className="gap-2"
                     >
-                      {updateSettings.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      {updateOrganization.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       Save Configuration
                     </Button>
                   </CardContent>
                 </Card>
+              </TabsContent>
+            )}
 
-                <Card className="border-border/50 shadow-none bg-card/50">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Mail className="w-5 h-5 text-muted-foreground/60" /> Member Invitations
-                    </CardTitle>
-                    <CardDescription>Invite new members to join your workspace.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <form 
-                      onSubmit={(e) => { e.preventDefault(); if (inviteEmail) inviteMember.mutate(inviteEmail); }}
-                      className="flex flex-col sm:flex-row items-center gap-3"
-                    >
-                      <Input 
-                        type="email" 
-                        placeholder="colleague@company.com" 
-                        className="bg-card" 
-                        value={inviteEmail}
-                        onChange={e => setInviteEmail(e.target.value)}
-                        required
-                      />
-                      <Button 
-                        type="submit"
-                        className="w-full sm:w-auto flex-shrink-0 gap-2"
-                        disabled={inviteMember.isPending || !inviteEmail}
-                      >
-                        {inviteMember.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-                        Send Invite
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
+            {/* ─── Team Settings ─── */}
+            {user?.role === 'ADMIN' && (
+              <TabsContent value="team" className="m-0 space-y-6 outline-none">
+                <TeamTab />
               </TabsContent>
             )}
 

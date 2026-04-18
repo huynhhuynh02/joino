@@ -32,6 +32,9 @@ services:
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      - uploads_prod_data:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -86,6 +89,7 @@ services:
 
 volumes:
   postgres_prod_data:
+  uploads_prod_data:
 
 networks:
   joino_prod_network:
