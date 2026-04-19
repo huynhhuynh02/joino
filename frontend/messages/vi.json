@@ -81,9 +81,13 @@
     "savePreferences": "Lưu tùy chọn",
     "saveConfiguration": "Lưu cấu hình",
     "confirmDeactivate": "Bạn có chắc chắn muốn ngừng kích hoạt {name}? Họ sẽ mất quyền truy cập vào không gian làm việc.",
+    "estimatedHours": "Thời gian dự kiến",
+    "hours": "giờ",
     "roleAdmin": "Quản trị viên",
     "roleManager": "Quản lý",
     "roleMember": "Thành viên",
+    "roleOwner": "Chủ sở hữu",
+    "roleViewer": "Người xem",
     "makeAdmin": "Đặt làm Quản trị viên",
     "makeManager": "Đặt làm Quản lý",
     "makeMember": "Đặt làm Thành viên",
@@ -94,6 +98,7 @@
     "inviteMember": "Mời thành viên",
     "teamDirectory": "Danh bạ Đội ngũ",
     "teamDirectoryDesc": "Quản lý thành viên, vai trò và xem khối lượng công việc trong tổ chức của bạn.",
+    "email": "Email",
     "manage": "Quản lý",
     "changeRole": "Thay đổi vai trò",
     "inactive": "NGỪNG HOẠT ĐỘNG",
@@ -318,11 +323,7 @@
       "DROPDOWN": "Danh sách thả xuống",
       "CHECKBOX": "Hộp kiểm",
       "URL": "Liên kết"
-    },
-    "dropdownOptions": "Tùy chọn danh sách",
-    "optionName": "Tên tùy chọn",
-    "roleOwner": "Chủ sở hữu",
-    "roleViewer": "Người xem"
+    }
   },
   "taskDetail": {
     "title": "Chi tiết công việc",
@@ -365,7 +366,9 @@
     "customFields": "Trường tùy chỉnh",
     "noValue": "Không có giá trị",
     "summaryGenerated": "Đã tạo tóm tắt ✨",
-    "failedSummarize": "Tóm tắt thất bại"
+    "failedSummarize": "Tóm tắt thất bại",
+    "hours": "giờ",
+    "createdBy": "Người tạo"
   },
   "gantt": {
     "noTasksWithDates": "Thêm một công việc có ngày bắt đầu và kết hạn để xem biểu đồ Gantt",

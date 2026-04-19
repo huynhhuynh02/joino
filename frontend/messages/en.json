@@ -81,9 +81,13 @@
     "savePreferences": "Save Preferences",
     "saveConfiguration": "Save Configuration",
     "confirmDeactivate": "Are you sure you want to deactivate {name}? They will lose access to the workspace.",
+    "estimatedHours": "Estimated Hours",
+    "hours": "hours",
     "roleAdmin": "Admin",
     "roleManager": "Manager",
     "roleMember": "Member",
+    "roleOwner": "Owner",
+    "roleViewer": "Viewer",
     "makeAdmin": "Make Admin",
     "makeManager": "Make Manager",
     "makeMember": "Make Member",
@@ -94,6 +98,7 @@
     "inviteMember": "Invite Member",
     "teamDirectory": "Team Directory",
     "teamDirectoryDesc": "Manage members, roles, and view workloads across your organization.",
+    "email": "Email",
     "manage": "Manage",
     "changeRole": "Change Role",
     "inactive": "INACTIVE",
@@ -366,7 +371,9 @@
     "customFields": "Custom Fields",
     "noValue": "No value",
     "summaryGenerated": "Summary generated ✨",
-    "failedSummarize": "Failed to summarize"
+    "failedSummarize": "Failed to summarize",
+    "hours": "hours",
+    "createdBy": "Created By"
   },
   "gantt": {
     "noTasksWithDates": "Add a task with dates to see the Gantt chart",

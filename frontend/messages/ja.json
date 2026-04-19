@@ -81,9 +81,13 @@
     "savePreferences": "設定を保存",
     "saveConfiguration": "構成を保存",
     "confirmDeactivate": "{name} を無効にしてもよろしいですか？ワークスペースへのアクセス権が失われます。",
+    "estimatedHours": "予定時間",
+    "hours": "時間",
     "roleAdmin": "管理者",
     "roleManager": "マネージャー",
     "roleMember": "メンバー",
+    "roleOwner": "オーナー",
+    "roleViewer": "閲覧者",
     "makeAdmin": "管理者に設定",
     "makeManager": "マネージャーに設定",
     "makeMember": "メンバーに設定",
@@ -94,6 +98,7 @@
     "inviteMember": "メンバーを招待",
     "teamDirectory": "チームディレクトリ",
     "teamDirectoryDesc": "組織内のメンバー、役割、および作業負荷を管理します。",
+    "email": "メール",
     "manage": "管理",
     "changeRole": "役割を変更",
     "inactive": "非アクティブ",
@@ -318,11 +323,7 @@
       "DROPDOWN": "ドロップダウン",
       "CHECKBOX": "チェックボックス",
       "URL": "URL"
-    },
-    "dropdownOptions": "ドロップダウンの選択肢",
-    "optionName": "オプション名",
-    "roleOwner": "オーナー",
-    "roleViewer": "閲覧者"
+    }
   },
   "taskDetail": {
     "title": "タスクの詳細",
@@ -365,7 +366,9 @@
     "customFields": "カスタムフィールド",
     "noValue": "値なし",
     "summaryGenerated": "要約が生成されました ✨",
-    "failedSummarize": "要約に失敗しました"
+    "failedSummarize": "要約に失敗しました",
+    "hours": "時間",
+    "createdBy": "作成者"
   },
   "gantt": {
     "noTasksWithDates": "ガントチャートを表示するには、日付のあるタスクを追加してください",
