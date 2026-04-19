@@ -3,14 +3,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useUIStore } from '@/stores/uiStore';
-import { Plus, Folder, Users, LayoutGrid, CheckSquare } from 'lucide-react';
+import { Plus, Folder, LayoutGrid, CheckSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorState } from '@/components/ui/error-state';
 import { useRouter } from 'next/navigation';
-import { formatDateRelative, cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import { useTranslations } from 'next-intl';
 
 interface Project {
   id: string;
@@ -25,6 +24,7 @@ interface Project {
 }
 
 export default function ProjectsPage() {
+  const t = useTranslations();
   const router = useRouter();
   const openCreateProject = useUIStore((s) => s.openCreateProject);
 
@@ -48,15 +48,15 @@ export default function ProjectsPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <LayoutGrid className="w-6 h-6 text-primary" />
-            Projects
+            {t('projects.title')}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Manage your teams and current active initiatives.
+            {t('projects.description')}
           </p>
         </div>
         <Button onClick={openCreateProject} className="gap-2 bg-primary hover:bg-primary/90 text-white border-none shadow-md">
           <Plus className="w-4 h-4" />
-          Create Project
+          {t('projects.createButton')}
         </Button>
       </div>
 
@@ -86,12 +86,12 @@ export default function ProjectsPage() {
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
               <Folder className="w-8 h-8 text-muted-foreground/40" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">No projects yet</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t('projects.noProjects')}</h3>
             <p className="text-muted-foreground mt-1 max-w-sm text-center mb-6">
-              Create your first project to start organizing tasks, inviting team members, and tracking progress.
+              {t('projects.noProjectsDesc')}
             </p>
             <Button onClick={openCreateProject} variant="outline">
-              Create Project
+              {t('projects.createButton')}
             </Button>
           </div>
         ) : (
@@ -113,7 +113,7 @@ export default function ProjectsPage() {
                     {project.name}
                   </h3>
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                    {project.description || 'No description provided.'}
+                    {project.description || t('projects.noDescription')}
                   </p>
                 </div>
               </div>
@@ -134,7 +134,7 @@ export default function ProjectsPage() {
                     </div>
                   )}
                   {(!project.members || project.members.length === 0) && (
-                    <span className="text-xs text-muted-foreground/60 italic">No members</span>
+                    <span className="text-xs text-muted-foreground/60 italic">{t('projects.noMembers')}</span>
                   )}
                 </div>
 

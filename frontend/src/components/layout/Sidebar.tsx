@@ -1,22 +1,20 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { usePathname, useRouter, Link } from '@/i18n/routing';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
-import { cn } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import {
   LayoutDashboard, CheckSquare, Bell, FolderKanban,
-  Users, Settings, Zap, Plus, ChevronRight, LogOut,
+  Settings, Zap, Plus, ChevronRight, LogOut,
   ChevronDown, BarChart3, Search, X,
 } from 'lucide-react';
 import {
   Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -26,9 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { getInitials } from '@/lib/utils';
 import { useState } from 'react';
-
 import { OrganizationSwitcher } from './OrganizationSwitcher';
 
 interface Project {
@@ -37,28 +33,29 @@ interface Project {
   color: string;
 }
 
-const NAV_ITEMS = [
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-  { label: 'My Tasks', icon: CheckSquare, href: '/my-tasks' },
-  { label: 'Inbox', icon: Bell, href: '/inbox' },
-  { label: 'Reports', icon: BarChart3, href: '/reports' },
-];
-
-const BOTTOM_NAV = [
-  { label: 'Settings', icon: Settings, href: '/settings' },
-];
-
 interface SidebarProps {
   isMobile?: boolean;
 }
 
 export function Sidebar({ isMobile }: SidebarProps = {}) {
+  const t = useTranslations();
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const openCreateProject = useUIStore((s) => s.openCreateProject);
   const [projectsExpanded, setProjectsExpanded] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const navItems = [
+    { label: t('common.dashboard'), icon: LayoutDashboard, href: '/dashboard' },
+    { label: t('common.myTasks'), icon: CheckSquare, href: '/my-tasks' },
+    { label: t('common.inbox'), icon: Bell, href: '/inbox' },
+    { label: t('common.reports'), icon: BarChart3, href: '/reports' },
+  ];
+
+  const bottomNav = [
+    { label: t('common.settings'), icon: Settings, href: '/settings' },
+  ];
 
   const { data: projects } = useQuery({
     queryKey: ['projects'],
@@ -95,7 +92,7 @@ export function Sidebar({ isMobile }: SidebarProps = {}) {
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 group-focus-within:text-white transition-colors" />
             <input 
               type="text"
-              placeholder="Quick search..."
+              placeholder={t('common.search') + "..."}
               className="w-full bg-white/5 border border-white/5 rounded-md pl-8 pr-8 py-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:bg-white/10 transition-all shadow-inner"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -119,10 +116,10 @@ export function Sidebar({ isMobile }: SidebarProps = {}) {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
           {/* Main Nav */}
-          {NAV_ITEMS.map(({ label, icon: Icon, href }) => (
+          {navItems.map(({ label, icon: Icon, href }) => (
             <Link
               key={href}
-              href={href}
+              href={href as any}
               className={cn(
                 'sidebar-item',
                 pathname === href && 'active'
@@ -141,7 +138,7 @@ export function Sidebar({ isMobile }: SidebarProps = {}) {
             >
               <span className="flex items-center gap-2">
                 <FolderKanban className="w-4 h-4" />
-                Projects
+                {t('common.projects')}
               </span>
               <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', !projectsExpanded && '-rotate-90')} />
             </button>
@@ -156,12 +153,12 @@ export function Sidebar({ isMobile }: SidebarProps = {}) {
                   )}
                 >
                   <FolderKanban className="w-3 h-3" />
-                  <span>All Projects</span>
+                  <span>{t('sidebar.favorites')}</span>
                 </Link>
                 {filteredProjects?.map((project) => (
                   <Link
                     key={project.id}
-                    href={`/projects/${project.id}`}
+                    href={`/projects/${project.id}` as any}
                     className={cn(
                       'sidebar-item text-xs animate-in fade-in slide-in-from-left-2 duration-200',
                       pathname.startsWith(`/projects/${project.id}`) && 'active'
@@ -176,7 +173,7 @@ export function Sidebar({ isMobile }: SidebarProps = {}) {
                 ))}
                 {searchQuery && filteredProjects?.length === 0 && (
                   <div className="px-3 py-4 text-center">
-                    <p className="text-[10px] text-muted-foreground/40 italic">No matching projects</p>
+                    <p className="text-[10px] text-muted-foreground/40 italic">{t('sidebar.noMatchingProjects')}</p>
                   </div>
                 )}
                 <button
@@ -184,7 +181,7 @@ export function Sidebar({ isMobile }: SidebarProps = {}) {
                   className="sidebar-item w-full text-xs text-muted-foreground/60 hover:text-white"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  New project
+                  {t('sidebar.createProject')}
                 </button>
               </div>
             )}
@@ -193,10 +190,10 @@ export function Sidebar({ isMobile }: SidebarProps = {}) {
 
         {/* Bottom Nav */}
         <div className="px-2 pb-2 space-y-0.5 border-t border-white/10 pt-2">
-          {BOTTOM_NAV.map(({ label, icon: Icon, href }) => (
+          {bottomNav.map(({ label, icon: Icon, href }) => (
             <Link
               key={href}
-              href={href}
+              href={href as any}
               className={cn('sidebar-item', pathname === href && 'active')}
             >
               <Icon className="w-4 h-4" />
@@ -228,13 +225,13 @@ export function Sidebar({ isMobile }: SidebarProps = {}) {
                 <DropdownMenuItem asChild>
                   <Link href="/settings">
                     <Settings className="w-4 h-4 mr-2" />
-                    Settings
+                    {t('common.settings')}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-red-600" onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-2" />
-                  Sign out
+                  {t('common.logout')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

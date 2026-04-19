@@ -11,10 +11,22 @@ async function main() {
   await prisma.activity.deleteMany();
   await prisma.attachment.deleteMany();
   await prisma.comment.deleteMany();
+  await prisma.timeLog.deleteMany();
+  await prisma.favorite.deleteMany();
+  await prisma.taskLabel.deleteMany();
+  await prisma.customFieldValue.deleteMany();
+  await prisma.taskDependency.deleteMany();
   await prisma.task.deleteMany();
+  await prisma.folder.deleteMany();
+  await prisma.label.deleteMany();
+  await prisma.customField.deleteMany();
   await prisma.projectMember.deleteMany();
   await prisma.project.deleteMany();
+  await prisma.invitation.deleteMany();
+  await prisma.organizationMember.deleteMany();
+  await prisma.organization.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.setting.deleteMany();
 
   // ─── Users ──────────────────────────────────────────────────────────────────
   const passwordHash = await bcrypt.hash('password123', 12);

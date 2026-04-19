@@ -29,6 +29,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { useState, useMemo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { useTranslations } from 'next-intl';
 
 interface Task {
   id: string;
@@ -43,6 +44,7 @@ interface Task {
 type GroupBy = 'status' | 'due_date' | 'project';
 
 export default function MyTasksPage() {
+  const t = useTranslations();
   const setSelectedTaskId = useUIStore((s) => s.setSelectedTaskId);
   const [groupBy, setGroupBy] = useState<GroupBy>('due_date');
   const [search, setSearch] = useState('');
@@ -77,7 +79,7 @@ export default function MyTasksPage() {
     const arr = filteredTasks;
     if (groupBy === 'status') {
       const g: Record<string, { label: string; tasks: Task[] }> = {};
-      Object.entries(STATUS_CONFIG).forEach(([k, v]) => { g[k] = { label: v.label, tasks: [] }; });
+      Object.entries(STATUS_CONFIG).forEach(([k, v]) => { g[k] = { label: t(`status.${k}`), tasks: [] }; });
       arr.forEach(t => { if (g[t.status]) g[t.status].tasks.push(t); });
       return Object.values(g).filter(group => group.tasks.length > 0);
     }
@@ -90,12 +92,13 @@ export default function MyTasksPage() {
       return Object.values(g).sort((a,b) => a.label.localeCompare(b.label));
     }
     const g: Record<string, { label: string; tasks: Task[] }> = {
-      overdue: { label: 'Overdue', tasks: [] },
-      today: { label: 'Today', tasks: [] },
-      week: { label: 'This Week', tasks: [] },
-      later: { label: 'Later', tasks: [] },
-      none: { label: 'No Due Date', tasks: [] },
+      overdue: { label: t('dashboard.overdue'), tasks: [] },
+      today: { label: t('common.today'), tasks: [] },
+      week: { label: t('common.thisWeek'), tasks: [] },
+      later: { label: t('common.later'), tasks: [] },
+      none: { label: t('common.noDueDate'), tasks: [] },
     };
+
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const endOfWeek = startOfToday + 7 * 24 * 60 * 60 * 1000;
@@ -109,38 +112,38 @@ export default function MyTasksPage() {
       else { g.later.tasks.push(t); }
     });
     return Object.values(g).filter(group => group.tasks.length > 0);
-  }, [filteredTasks, groupBy]);
+  }, [filteredTasks, groupBy, t]);
 
   return (
     <div className="view-container">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <CheckSquare className="w-6 h-6 text-primary" />
-          My Tasks
+          {t('myTasks.title')}
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          All pending tasks assigned to you across all projects.
+          {t('myTasks.description')}
         </p>
       </div>
 
       <div className="flex items-center justify-between mb-4 mt-6 flex-wrap gap-4">
         <div className="flex items-center gap-4 flex-wrap">
           <Input 
-            placeholder="Search tasks by name or project..." 
+            placeholder={t('myTasks.searchPlaceholder')} 
             value={search} 
             onChange={(e) => setSearch(e.target.value)} 
             className="w-64 h-9 bg-card"
           />
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground font-medium">Group by:</span>
+            <span className="text-xs text-muted-foreground font-medium">{t('common.groupBy')}:</span>
             <Select value={groupBy} onValueChange={(v) => setGroupBy(v as GroupBy)}>
               <SelectTrigger className="w-40 h-9 bg-card">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="due_date">Due Date</SelectItem>
-                <SelectItem value="status">Status</SelectItem>
-                <SelectItem value="project">Project</SelectItem>
+                <SelectItem value="due_date">{t('common.dueDate')}</SelectItem>
+                <SelectItem value="status">{t('common.status')}</SelectItem>
+                <SelectItem value="project">{t('common.project')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -148,12 +151,12 @@ export default function MyTasksPage() {
         <div className="flex items-center gap-4">
           <Tabs defaultValue="list" className="w-[200px]">
              <TabsList className="grid w-full grid-cols-2">
-               <TabsTrigger value="list" className="flex gap-2 text-xs"><LayoutList className="w-3.5 h-3.5" /> List</TabsTrigger>
-               <TabsTrigger value="board" className="flex gap-2 text-xs"><KanbanSquare className="w-3.5 h-3.5" /> Board</TabsTrigger>
+               <TabsTrigger value="list" className="flex gap-2 text-xs"><LayoutList className="w-3.5 h-3.5" /> {t('common.list')}</TabsTrigger>
+               <TabsTrigger value="board" className="flex gap-2 text-xs"><KanbanSquare className="w-3.5 h-3.5" /> {t('common.board')}</TabsTrigger>
              </TabsList>
           </Tabs>
           <Badge variant="outline" className="bg-card text-muted-foreground border-border">
-            {filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'}
+            {filteredTasks.length} {t('common.taskCount', { count: filteredTasks.length })}
           </Badge>
         </div>
       </div>
@@ -187,9 +190,9 @@ export default function MyTasksPage() {
           <div className="p-16 text-center text-muted-foreground">
             <CheckSquare className="w-12 h-12 mx-auto mb-4 opacity-10" />
             <p className="text-lg font-medium text-foreground mb-1">
-              {search ? 'No tasks found for your search.' : "You're all caught up!"}
+              {search ? t('common.noTasksSearch') : t('common.allCaughtUp')}
             </p>
-            <p className="text-sm">{search ? 'Try adjusting your search query.' : 'No tasks assigned to you right now.'}</p>
+            <p className="text-sm">{search ? t('common.tryAdjustSearch') : t('common.noTasksAssigned')}</p>
           </div>
         ) : (
           <>
@@ -205,10 +208,10 @@ export default function MyTasksPage() {
                 <Table>
                   <TableHeader className="sr-only">
                     <TableRow>
-                      <TableHead>Task Project</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Due Date</TableHead>
+                      <TableHead>{t('common.project')}</TableHead>
+                      <TableHead>{t('common.status')}</TableHead>
+                      <TableHead>{t('common.priority')}</TableHead>
+                      <TableHead>{t('common.dueDate')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -255,13 +258,13 @@ export default function MyTasksPage() {
                           <TableCell className="w-[15%] py-3">
                             <div className="flex items-center gap-1.5 text-[11px] font-medium text-foreground/80 bg-background border border-border px-2 py-1 rounded w-max shadow-sm">
                               <span className={cn('w-2 h-2 rounded-full', statConf?.dotColor)} />
-                              {statConf?.label}
+                              {t(`status.${task.status}`)}
                             </div>
                           </TableCell>
 
                           <TableCell className="w-[15%] py-3">
                             <Badge variant="secondary" className={cn('text-[10px] uppercase font-bold border-none px-2 py-0.5', prioColors[task.priority])}>
-                              {prioConf?.label}
+                              {t(`priority.${task.priority}`)}
                             </Badge>
                           </TableCell>
 
@@ -271,7 +274,7 @@ export default function MyTasksPage() {
                                 {formatDate(task.dueDate)}
                               </span>
                             ) : (
-                              <span className="text-[11px] text-muted-foreground/40 italic">No dueDate</span>
+                              <span className="text-[11px] text-muted-foreground/40 italic">{t('common.noDueDate')}</span>
                             )}
                           </TableCell>
                         </TableRow>
@@ -297,7 +300,6 @@ export default function MyTasksPage() {
                     </div>
                     <div className="p-2 space-y-2 overflow-y-auto flex-1">
                       {group.tasks.map(task => {
-                        const prioConf = PRIORITY_CONFIG[task.priority as keyof typeof PRIORITY_CONFIG];
                         const prioColors: Record<string, string> = { LOW: 'text-muted-foreground bg-muted', MEDIUM: 'text-yellow-500 bg-yellow-500/10', HIGH: 'text-orange-500 bg-orange-500/10', URGENT: 'text-destructive bg-destructive/10' };
                         return (
                           <Card 
@@ -320,7 +322,7 @@ export default function MyTasksPage() {
                                   <span className="truncate max-w-[100px]">{task.project.name}</span>
                                 </div>
                                 <Badge variant="secondary" className={cn('text-[9px] uppercase font-bold border-none px-1.5 py-0 h-4', prioColors[task.priority])}>
-                                  {prioConf?.label}
+                                  {t(`priority.${task.priority}`)}
                                 </Badge>
                               </div>
                             </CardContent>

@@ -6,7 +6,7 @@ import { env } from 'process';
  */
 
 const GEMINI_API_KEY = env.GEMINI_API_KEY || '';
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent';
 
 export async function askGemini(prompt: string, jsonMode = false): Promise<string> {
   if (!GEMINI_API_KEY) {

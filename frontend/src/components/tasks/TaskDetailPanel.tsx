@@ -30,6 +30,7 @@ import {
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthStore } from '@/stores/authStore';
+import { useTranslations } from 'next-intl';
 
 interface TaskDetail {
   id: string;
@@ -74,6 +75,7 @@ function CommentItem({
   onDelete: (id: string) => void;
   onEdit: (id: string, content: string) => void;
 }) {
+  const t = useTranslations();
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(comment.content);
   const isOwn = currentUserId === comment.user.id;
@@ -97,7 +99,7 @@ function CommentItem({
             <span className="text-xs font-semibold text-foreground/90">{comment.user.name}</span>
             <span className="text-[10px] text-muted-foreground/60">{formatDateRelative(comment.createdAt)}</span>
             {comment.updatedAt !== comment.createdAt && (
-              <span className="text-[10px] text-muted-foreground/40 italic">(edited)</span>
+              <span className="text-[10px] text-muted-foreground/40 italic">{t('taskDetail.edited')}</span>
             )}
           </div>
           {isOwn && !editing && (
@@ -133,10 +135,10 @@ function CommentItem({
             />
             <div className="flex gap-2 mt-1.5">
               <Button size="sm" className="h-6 text-xs bg-primary hover:bg-primary/90" onClick={commitEdit}>
-                Save
+                {t('common.save')}
               </Button>
               <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setEditing(false)}>
-                Cancel
+                {t('common.cancel')}
               </Button>
             </div>
           </div>
@@ -162,18 +164,20 @@ function CommentItem({
 }
 
 // ─── Activity action labels ───────────────────────────────────────────────────
-function activityLabel(action: string, details: Record<string, unknown>): string {
+function ActivityLabel({ action, details }: { action: string, details: Record<string, unknown> }) {
+  const t = useTranslations();
   switch (action) {
-    case 'task_created': return 'created this task';
-    case 'status_changed': return `changed status from "${details.from}" to "${details.to}"`;
-    case 'comment_added': return 'added a comment';
-    case 'assignment_changed': return 'changed the assignee';
+    case 'task_created': return t('activity.created');
+    case 'status_changed': return `${t('activity.statusChanged')}: ${t(`status.${details.from}`)} → ${t(`status.${details.to}`)}`;
+    case 'comment_added': return t('activity.commentAdded');
+    case 'assignment_changed': return t('activity.assigneeChanged');
     default: return action.replace(/_/g, ' ');
   }
 }
 
 // ─── Main Panel ───────────────────────────────────────────────────────────────
 export function TaskDetailPanel() {
+  const t = useTranslations();
   const { selectedTaskId, setSelectedTaskId } = useUIStore();
   const [comment, setComment] = useState('');
   const [editingTitle, setEditingTitle] = useState(false);
@@ -237,17 +241,17 @@ export function TaskDetailPanel() {
     mutationFn: () => api.post(`/api/ai/summarize-task/${selectedTaskId}`),
     onSuccess: (res: any) => {
       setAiSummary(res.data);
-      toast({ title: 'Summary generated ✨' });
+      toast({ title: t('taskDetail.summaryGenerated') });
     },
     onError: (err: any) => {
-      toast({ title: 'Failed to summarize', description: err.response?.data?.message || 'Check AI settings', variant: 'destructive' });
+      toast({ title: t('taskDetail.failedSummarize'), description: err.response?.data?.message || t('tasks.aiApiKeyHint'), variant: 'destructive' });
     }
   });
 
   const updateTask = useMutation({
     mutationFn: (data: Record<string, unknown>) => api.put(`/api/tasks/${selectedTaskId}`, data),
     onSuccess: invalidate,
-    onError: () => toast({ title: 'Update failed', variant: 'destructive' }),
+    onError: () => toast({ title: t('common.updatedError'), variant: 'destructive' }),
   });
 
   const addComment = useMutation({
@@ -278,10 +282,10 @@ export function TaskDetailPanel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['task', selectedTaskId] });
-      toast({ title: 'File uploaded' });
+      toast({ title: t('taskDetail.fileUploaded') });
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
-    onError: () => toast({ title: 'Upload failed', variant: 'destructive' }),
+    onError: () => toast({ title: t('taskDetail.uploadFailed'), variant: 'destructive' }),
   });
 
   const deleteAttachment = useMutation({
@@ -303,7 +307,7 @@ export function TaskDetailPanel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      toast({ title: 'Task duplicated' });
+      toast({ title: t('taskDetail.taskDuplicated') });
     },
   });
 
@@ -312,7 +316,7 @@ export function TaskDetailPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       setSelectedTaskId(null);
-      toast({ title: 'Task deleted' });
+      toast({ title: t('taskDetail.taskDeleted') });
     },
   });
 
@@ -320,7 +324,7 @@ export function TaskDetailPanel() {
     mutationFn: (logId: string) => api.delete(`/api/search/timelogs/${logId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['task', selectedTaskId] });
-      toast({ title: 'Time log deleted' });
+      toast({ title: t('taskDetail.timeLogDeleted') });
     },
   });
 
@@ -341,9 +345,9 @@ export function TaskDetailPanel() {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['task', selectedTaskId] });
       const project = allProjects?.find((p: any) => p.id === newProjectId);
-      toast({ title: `Task moved to ${project?.name || 'project'}` });
+      toast({ title: t('taskDetail.taskMoved', { name: project?.name || 'project' }) });
     },
-    onError: () => toast({ title: 'Failed to move task', variant: 'destructive' }),
+    onError: () => toast({ title: t('common.updatedError'), variant: 'destructive' }),
   });
 
   const updateCustomFieldValue = useMutation({
@@ -352,7 +356,7 @@ export function TaskDetailPanel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['task', selectedTaskId] });
     },
-    onError: () => toast({ title: 'Update failed', variant: 'destructive' }),
+    onError: () => toast({ title: t('common.updatedError'), variant: 'destructive' }),
   });
 
   const handleTitleSave = () => {
@@ -368,13 +372,13 @@ export function TaskDetailPanel() {
   const copyLink = () => {
     const url = `${window.location.origin}/projects/${task?.project.id}?taskId=${task?.id}`;
     navigator.clipboard.writeText(url);
-    toast({ title: 'Link copied!' });
+    toast({ title: t('taskDetail.linkCopied') });
   };
 
   return (
     <Sheet open={!!selectedTaskId} onOpenChange={(open) => !open && setSelectedTaskId(null)}>
       <SheetContent side="right" className="w-[85vw] sm:max-w-xl md:max-w-2xl p-0 flex flex-col bg-background border-l border-border shadow-2xl">
-        <SheetTitle className="sr-only text-foreground">Task Details</SheetTitle>
+        <SheetTitle className="sr-only text-foreground">{t('taskDetail.title')}</SheetTitle>
         {isLoading ? (
           <div className="p-6 space-y-4">
             <Skeleton className="h-6 w-3/4" />
@@ -409,7 +413,7 @@ export function TaskDetailPanel() {
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <Button
                     variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                    onClick={copyLink} title="Copy link"
+                    onClick={copyLink} title={t('taskDetail.copyLink')}
                   >
                     <Link2 className="w-3.5 h-3.5" />
                   </Button>
@@ -421,20 +425,20 @@ export function TaskDetailPanel() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-52 p-1">
                       <DropdownMenuItem className="text-xs cursor-pointer gap-2" onClick={copyLink}>
-                        <Link2 className="w-3.5 h-3.5" /> Copy link
+                        <Link2 className="w-3.5 h-3.5" /> {t('taskDetail.copyLink')}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-xs cursor-pointer gap-2"
                         onClick={() => duplicateTask.mutate()}
                       >
-                        <Copy className="w-3.5 h-3.5" /> Duplicate task
+                        <Copy className="w-3.5 h-3.5" /> {t('taskDetail.duplicateTask')}
                       </DropdownMenuItem>
 
                       {/* Move to project */}
                       {allProjects && allProjects.filter((p: any) => p.id !== task.project.id).length > 0 && (
                         <>
                           <DropdownMenuSeparator />
-                          <p className="text-[10px] text-gray-400 font-semibold px-2 pt-1 pb-0.5 uppercase tracking-wide">Move to project</p>
+                          <p className="text-[10px] text-gray-400 font-semibold px-2 pt-1 pb-0.5 uppercase tracking-wide">{t('taskDetail.moveToProject')}</p>
                           {allProjects
                             .filter((p: any) => p.id !== task.project.id)
                             .map((p: any) => (
@@ -454,12 +458,12 @@ export function TaskDetailPanel() {
                       <DropdownMenuItem
                         className="text-xs cursor-pointer gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
                         onClick={() => {
-                          if (confirm('Are you sure you want to delete this task?')) {
+                          if (confirm(t('taskDetail.confirmDeleteTask'))) {
                             deleteTask.mutate();
                           }
                         }}
                       >
-                        <Trash2 className="w-3.5 h-3.5" /> Delete task
+                        <Trash2 className="w-3.5 h-3.5" /> {t('taskDetail.deleteTask')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -500,12 +504,12 @@ export function TaskDetailPanel() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm" className="h-5 px-2 text-[10px] border-dashed border-border/50 text-muted-foreground/60 hover:text-foreground transition-colors">
-                        <Plus className="w-3 h-3 mr-1" /> Add label
+                        <Plus className="w-3 h-3 mr-1" /> {t('taskDetail.addLabel')}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-48 p-1">
                       {(!projectLabels || projectLabels.length === 0) ? (
-                        <div className="p-2 text-xs text-muted-foreground/60 text-center">No labels in project</div>
+                        <div className="p-2 text-xs text-muted-foreground/60 text-center">{t('taskDetail.noLabelsInProject')}</div>
                       ) : (
                         projectLabels.map((l: any) => {
                           const assigned = task.labels?.some((tl) => tl.label.id === l.id);
@@ -546,7 +550,7 @@ export function TaskDetailPanel() {
                 if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                   const file = e.dataTransfer.files[0];
                   if (file.size > 10 * 1024 * 1024) {
-                    toast({ title: 'Max file size is 10MB', variant: 'destructive' }); return;
+                    toast({ title: t('taskDetail.maxFileSize10MB'), variant: 'destructive' }); return;
                   }
                   uploadAttachment.mutate(file);
                 }
@@ -556,7 +560,7 @@ export function TaskDetailPanel() {
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm border-2 border-dashed border-primary m-4 rounded-xl">
                   <div className="text-center">
                     <Paperclip className="w-10 h-10 text-primary mx-auto mb-2 animate-bounce" />
-                    <p className="text-lg font-bold text-primary">Drop file to attach</p>
+                    <p className="text-lg font-bold text-primary">{t('taskDetail.dropFileToAttach')}</p>
                   </div>
                 </div>
               )}
@@ -566,17 +570,17 @@ export function TaskDetailPanel() {
                 <div className="grid grid-cols-1 gap-y-3.5">
                   {/* Status */}
                   <div className="flex items-center gap-3 group">
-                    <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">Status</span>
+                    <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">{t('tasks.status')}</span>
                     <Select value={task.status} onValueChange={(v) => updateTask.mutate({ status: v })}>
                       <SelectTrigger className="h-7 text-xs w-36 border-border hover:border-border/80 bg-background text-foreground transition-colors">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-card border-border">
-                        {Object.entries(STATUS_CONFIG).map(([key, { label, dotColor }]) => (
+                        {Object.entries(STATUS_CONFIG).map(([key, { dotColor }]) => (
                           <SelectItem key={key} value={key}>
                             <span className="flex items-center gap-1.5">
                               <span className={cn('w-2 h-2 rounded-full', dotColor)} />
-                              {label}
+                              {t(`status.${key}`)}
                             </span>
                           </SelectItem>
                         ))}
@@ -586,17 +590,17 @@ export function TaskDetailPanel() {
 
                   {/* Priority */}
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">Priority</span>
+                    <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">{t('tasks.priority')}</span>
                     <Select value={task.priority} onValueChange={(v) => updateTask.mutate({ priority: v })}>
                       <SelectTrigger className="h-7 text-xs w-28 border-border hover:border-border/80 bg-background text-foreground transition-colors">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-card border-border">
-                        {Object.entries(PRIORITY_CONFIG).map(([key, { label, dotColor }]) => (
+                        {Object.entries(PRIORITY_CONFIG).map(([key, { dotColor }]) => (
                           <SelectItem key={key} value={key}>
                             <span className="flex items-center gap-1.5">
                               <span className={cn('w-2 h-2 rounded-full', dotColor)} />
-                              {label}
+                              {t(`priority.${key}`)}
                             </span>
                           </SelectItem>
                         ))}
@@ -606,7 +610,7 @@ export function TaskDetailPanel() {
 
                   {/* Assignee */}
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">Assignee</span>
+                    <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">{t('tasks.assignee')}</span>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className="flex items-center gap-1.5 h-7 px-2 rounded-md border border-border hover:border-border/80 transition-colors text-xs min-w-[7rem] bg-background">
@@ -621,7 +625,7 @@ export function TaskDetailPanel() {
                               <span className="truncate text-foreground/80">{task.assignee.name}</span>
                             </>
                           ) : (
-                            <span className="text-muted-foreground/60 italic">Unassigned</span>
+                            <span className="text-muted-foreground/60 italic">{t('tasks.unassigned')}</span>
                           )}
                           <ChevronDown className="w-3 h-3 ml-auto text-muted-foreground/40" />
                         </button>
@@ -631,7 +635,7 @@ export function TaskDetailPanel() {
                           className="text-xs cursor-pointer text-muted-foreground/60 italic"
                           onClick={() => updateTask.mutate({ assigneeId: null })}
                         >
-                          Unassigned
+                          {t('tasks.unassigned')}
                         </DropdownMenuItem>
                         {(members || []).map((m: any) => (
                           <DropdownMenuItem
@@ -658,7 +662,7 @@ export function TaskDetailPanel() {
                   {/* Dates Row */}
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">Start date</span>
+                      <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">{t('tasks.startDate')}</span>
                       <input
                         type="date"
                         defaultValue={task.startDate ? task.startDate.substring(0, 10) : ''}
@@ -667,7 +671,7 @@ export function TaskDetailPanel() {
                       />
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">Due date</span>
+                      <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">{t('tasks.dueDate')}</span>
                       <input
                         type="date"
                         defaultValue={task.dueDate ? task.dueDate.substring(0, 10) : ''}
@@ -684,14 +688,14 @@ export function TaskDetailPanel() {
 
                   {/* Estimated */}
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">Estimated</span>
+                    <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">{t('common.estimatedHours')}</span>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
                         step="0.5"
                         min="0"
                         className="h-7 w-20 border border-border rounded-md px-2 text-xs text-foreground/80 focus:outline-none focus:border-primary hover:border-border/80 transition-colors bg-background"
-                        placeholder="Hours"
+                        placeholder={t('taskDetail.hours')}
                         defaultValue={task.estimatedHours || ''}
                         onBlur={(e) => {
                           const val = parseFloat(e.target.value);
@@ -709,7 +713,7 @@ export function TaskDetailPanel() {
 
                   {/* Time Logged */}
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">Time logged</span>
+                    <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">{t('taskDetail.timeLogs')}</span>
                     <div className="flex flex-1 items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <span className="text-xs font-semibold text-foreground/80">
@@ -722,14 +726,14 @@ export function TaskDetailPanel() {
                         className="h-6 text-[10px] text-primary px-2 hover:bg-primary/10 transition-colors"
                         onClick={() => setTimeLogOpen(true)}
                       >
-                        <Clock className="w-3 h-3 mr-1" /> Log Time
+                        <Clock className="w-3 h-3 mr-1" /> {t('taskDetail.logTime')}
                       </Button>
                     </div>
                   </div>
 
                   {/* Created By */}
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">Created by</span>
+                    <span className="text-xs text-muted-foreground/60 w-24 flex-shrink-0 font-medium">{t('taskDetail.createdBy')}</span>
                     <div className="flex items-center gap-1.5">
                       <Avatar className="w-5 h-5">
                         <AvatarImage src={task.creator.avatar || ''} />
@@ -742,7 +746,7 @@ export function TaskDetailPanel() {
                   {/* Custom Fields */}
                   {projectCustomFields && projectCustomFields.length > 0 && (
                     <div className="pt-4 mt-2 border-t border-border/50 space-y-2.5">
-                      <p className="text-[10px] text-muted-foreground/40 font-semibold uppercase tracking-wide mb-1 px-1">Custom Fields</p>
+                      <p className="text-[10px] text-muted-foreground/40 font-semibold uppercase tracking-wide mb-1 px-1">{t('taskDetail.customFields')}</p>
                       {projectCustomFields.map((f: any) => {
                         const valueObj = task.customFieldValues?.find((v: any) => v.fieldId === f.id);
                         const currentVal = valueObj?.value || '';
@@ -767,10 +771,10 @@ export function TaskDetailPanel() {
                               ) : f.type === 'DROPDOWN' ? (
                                 <Select value={currentVal} onValueChange={(v) => updateCustomFieldValue.mutate({ fieldId: f.id, value: v })}>
                                   <SelectTrigger className="h-7 text-xs w-full max-w-[200px] border-border hover:border-border/80 bg-background text-foreground transition-colors">
-                                    <SelectValue placeholder="No value" />
+                                    <SelectValue placeholder={t('taskDetail.noValue')} />
                                   </SelectTrigger>
                                   <SelectContent className="bg-card border-border">
-                                    <SelectItem value="_null" className="text-muted-foreground/60 italic">No value</SelectItem>
+                                    <SelectItem value="_null" className="text-muted-foreground/60 italic">{t('taskDetail.noValue')}</SelectItem>
                                     {(f.options as string[] || []).map((opt) => (
                                       <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                                     ))}
@@ -805,13 +809,13 @@ export function TaskDetailPanel() {
                 {/* Description */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-[11px] text-muted-foreground/40 font-semibold uppercase tracking-wide">Description</p>
+                    <p className="text-[11px] text-muted-foreground/40 font-semibold uppercase tracking-wide">{t('taskDetail.description')}</p>
                     {!editingDesc && (
                       <button
                         onClick={() => { setDesc(task.description || ''); setEditingDesc(true); }}
                         className="text-[10px] text-primary hover:text-primary/80 font-medium transition-colors"
                       >
-                        Edit
+                        {t('taskDetail.edit')}
                       </button>
                     )}
                   </div>
@@ -820,15 +824,15 @@ export function TaskDetailPanel() {
                       <RichTextEditor
                         value={desc}
                         onChange={setDesc}
-                        placeholder="Add a description..."
+                        placeholder={t('taskDetail.addDescription')}
                         autoFocus
                       />
                       <div className="flex gap-2">
                         <Button size="sm" className="h-7 text-xs bg-primary hover:bg-primary/90" onClick={handleDescSave}>
-                          Save
+                          {t('common.save')}
                         </Button>
                         <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditingDesc(false)}>
-                          Cancel
+                          {t('common.cancel')}
                         </Button>
                       </div>
                     </div>
@@ -843,7 +847,7 @@ export function TaskDetailPanel() {
                           dangerouslySetInnerHTML={{ __html: task.description }}
                         />
                       ) : (
-                        <p className="text-sm text-muted-foreground/60 italic group-hover:text-muted-foreground/80 transition-colors">Click to add a description...</p>
+                        <p className="text-sm text-muted-foreground/60 italic group-hover:text-muted-foreground/80 transition-colors">{t('taskDetail.clickToAddDescription')}</p>
                       )}
                     </div>
                   )}
@@ -855,7 +859,7 @@ export function TaskDetailPanel() {
                     <Separator className="border-border/50" />
                     <div>
                       <p className="text-[11px] text-muted-foreground/40 mb-2 font-semibold uppercase tracking-wide">
-                        Subtasks ({task.subtasks.filter(s => s.status === 'DONE').length}/{task.subtasks.length})
+                        {t('taskDetail.subtasks')} ({task.subtasks.filter(s => s.status === 'DONE').length}/{task.subtasks.length})
                       </p>
                       {/* Progress bar */}
                       <div className="h-1 bg-muted rounded-full mb-3">
@@ -892,14 +896,14 @@ export function TaskDetailPanel() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <p className="text-[11px] text-muted-foreground/40 font-semibold uppercase tracking-wide">
-                      Attachments {task.attachments?.length > 0 && `(${task.attachments.length})`}
+                      {t('taskDetail.attachments')} {task.attachments?.length > 0 && `(${task.attachments.length})`}
                     </p>
                     <div>
                       <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
                           if (file.size > 10 * 1024 * 1024) {
-                            toast({ title: 'Max file size is 10MB', variant: 'destructive' }); return;
+                            toast({ title: t('taskDetail.maxFileSize10MB'), variant: 'destructive' }); return;
                           }
                           uploadAttachment.mutate(file);
                         }
@@ -913,7 +917,7 @@ export function TaskDetailPanel() {
                         {uploadAttachment.isPending
                           ? <Spinner className="w-3.5 h-3.5 mr-1.5 animate-spin" />
                           : <Paperclip className="w-3.5 h-3.5 mr-1.5" />}
-                        Attach
+                        {t('taskDetail.attach')}
                       </Button>
                     </div>
                   </div>
@@ -965,7 +969,7 @@ export function TaskDetailPanel() {
                       )}
                       onClick={() => setActiveTab('comments')}
                     >
-                      <span>Comments {task.comments.length > 0 && `(${task.comments.length})`}</span>
+                      <span>{t('taskDetail.comments')} {task.comments.length > 0 && `(${task.comments.length})`}</span>
                     </button>
                     <button
                       className={cn(
@@ -976,7 +980,7 @@ export function TaskDetailPanel() {
                       )}
                       onClick={() => setActiveTab('activity')}
                     >
-                      Activity
+                      {t('taskDetail.activity')}
                     </button>
                     <button
                       className={cn(
@@ -987,7 +991,7 @@ export function TaskDetailPanel() {
                       )}
                       onClick={() => setActiveTab('timelogs')}
                     >
-                      Time Logs {task.timeLogs?.length > 0 && `(${task.timeLogs.length})`}
+                      {t('taskDetail.timeLogs')} {task.timeLogs?.length > 0 && `(${task.timeLogs.length})`}
                     </button>
                   </div>
 
@@ -1003,7 +1007,7 @@ export function TaskDetailPanel() {
                              disabled={summarizeComments.isPending}
                            >
                              {summarizeComments.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                             Summarize with AI
+                             {t('taskDetail.summarizeWithAI')}
                            </Button>
                         </div>
                       )}
@@ -1011,14 +1015,14 @@ export function TaskDetailPanel() {
                       {aiSummary && (
                         <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 p-4 rounded-xl text-sm text-foreground/80 mb-6">
                            <h4 className="flex items-center gap-2 font-bold text-indigo-600 mb-2">
-                             <Sparkles className="w-4 h-4" /> AI Summary
+                             <Sparkles className="w-4 h-4" /> {t('taskDetail.aiSummary')}
                            </h4>
                            <div className="prose-custom whitespace-pre-wrap">{aiSummary}</div>
                         </div>
                       )}
 
                       {task.comments.length === 0 ? (
-                        <p className="text-xs text-muted-foreground/60 text-center py-8">No comments yet — be the first!</p>
+                        <p className="text-xs text-muted-foreground/60 text-center py-8">{t('taskDetail.noComments')}</p>
                       ) : (
                         <div className="space-y-4">
                           {task.comments.map((c) => (
@@ -1042,7 +1046,7 @@ export function TaskDetailPanel() {
                         </Avatar>
                         <div className="flex-1 relative">
                           <Textarea
-                            placeholder="Write a comment... (Type @ to mention)"
+                            placeholder={t('taskDetail.writeComment')}
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             className="min-h-[80px] text-sm resize-none border-border focus-visible:ring-primary rounded-lg bg-background text-foreground transition-colors"
@@ -1062,7 +1066,7 @@ export function TaskDetailPanel() {
                                 onClick={() => addComment.mutate(comment)}
                                 disabled={addComment.isPending}
                               >
-                                <Send className="w-3 h-3" /> Send
+                                <Send className="w-3 h-3" /> {t('taskDetail.send')}
                               </Button>
                             </div>
                           )}
@@ -1074,7 +1078,7 @@ export function TaskDetailPanel() {
                   {activeTab === 'activity' && (
                     <div className="space-y-4">
                       {task.activities.length === 0 ? (
-                        <p className="text-xs text-muted-foreground/60 text-center py-8">No activity yet</p>
+                        <p className="text-xs text-muted-foreground/60 text-center py-8">{t('taskDetail.noActivity')}</p>
                       ) : (
                         <div className="space-y-4">
                           {task.activities.map((act) => (
@@ -1088,7 +1092,7 @@ export function TaskDetailPanel() {
                               <div>
                                 <p className="text-xs text-foreground/80 leading-relaxed">
                                   <span className="font-semibold text-foreground/90">{act.user.name}</span>{' '}
-                                  {activityLabel(act.action, act.details)}
+                                  <ActivityLabel action={act.action} details={act.details} />
                                 </p>
                                 <p className="text-[10px] text-muted-foreground/40 mt-1">
                                   {formatDateRelative(act.createdAt)}
@@ -1105,7 +1109,7 @@ export function TaskDetailPanel() {
                     <div className="space-y-4">
                       {(!task.timeLogs || task.timeLogs.length === 0) ? (
                         <div className="text-center py-8 text-xs text-muted-foreground/60 border border-dashed border-border rounded-lg">
-                          No time logged yet. Click "Log Time" to start tracking.
+                          {t('taskDetail.noTimeLogged')}
                         </div>
                       ) : (
                         <div className="space-y-3">
@@ -1137,7 +1141,7 @@ export function TaskDetailPanel() {
                                   size="icon" 
                                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-6 w-6 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all"
                                   onClick={() => {
-                                    if (confirm('Delete this time log?')) {
+                                    if (confirm(t('taskDetail.deleteTimeLog'))) {
                                       deleteTimeLog.mutate(log.id);
                                     }
                                   }}

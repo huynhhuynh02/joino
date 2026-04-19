@@ -13,8 +13,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorState } from '@/components/ui/error-state';
 import { cn, formatDateRelative, getInitials, STATUS_CONFIG, PRIORITY_CONFIG, formatDate, isOverdue } from '@/lib/utils';
-import Link from 'next/link';
-import type { Metadata } from 'next';
+import { Link } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 
 interface DashboardStats {
   totalTasks: number;
@@ -74,18 +74,8 @@ function StatCard({
   );
 }
 
-function activityLabel(action: string, details: Record<string, unknown>): string {
-  switch (action) {
-    case 'task_created': return 'created this task';
-    case 'status_changed': return `changed status: ${details.from} → ${details.to}`;
-    case 'comment_added': return 'added a comment';
-    case 'assignee_changed': return `assigned to ${details.to}`;
-    case 'file_uploaded': return `uploaded ${details.filename}`;
-    default: return action.replace(/_/g, ' ');
-  }
-}
-
 export default function DashboardPage() {
+  const t = useTranslations();
   const user = useAuthStore((s) => s.user);
   const openCreateProject = useUIStore((s) => s.openCreateProject);
   const setSelectedTaskId = useUIStore((s) => s.setSelectedTaskId);
@@ -102,16 +92,22 @@ export default function DashboardPage() {
   });
   const { data: myTasks, isLoading: tasksLoading } = tasksQuery;
 
-  const [greetingText, setGreetingText] = useState('Welcome');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const hour = new Date().getHours();
-    if (hour < 12) setGreetingText('Good morning');
-    else if (hour < 18) setGreetingText('Good afternoon');
-    else setGreetingText('Good evening');
   }, []);
+
+  function activityLabel(action: string, details: Record<string, unknown>): string {
+    switch (action) {
+      case 'task_created': return t('activity.created');
+      case 'status_changed': return `${t('activity.statusChanged')}: ${t(`status.${details.from}`)} → ${t(`status.${details.to}`)}`;
+      case 'comment_added': return t('activity.commentAdded');
+      case 'assignee_changed': return `${t('activity.assigneeChanged')} ${details.to}`;
+      case 'file_uploaded': return `${t('activity.fileUploaded')} ${details.filename}`;
+      default: return action.replace(/_/g, ' ');
+    }
+  }
 
   if (!mounted) {
     return (
@@ -146,10 +142,10 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">
-          {greetingText}, {user?.name?.split(' ')[0]} 👋
+          {t('dashboard.greeting')}, {user?.name?.split(' ')[0]} 👋
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Here&apos;s what&apos;s happening in your workspace today.
+          {t('dashboard.summary')}
         </p>
       </div>
 
@@ -157,28 +153,28 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           icon={Layers}
-          label="Total Tasks"
+          label={t('dashboard.totalTasks')}
           value={stats?.totalTasks}
           color="bg-blue-500/10 text-blue-500 dark:bg-blue-500/20"
           loading={statsLoading}
         />
         <StatCard
           icon={CheckSquare}
-          label="My Tasks"
+          label={t('common.myTasks')}
           value={stats?.myTasks}
           color="bg-primary/10 text-primary dark:bg-primary/20"
           loading={statsLoading}
         />
         <StatCard
           icon={AlertCircle}
-          label="Overdue"
+          label={t('dashboard.overdue')}
           value={stats?.overdueTasks}
           color="bg-destructive/10 text-destructive dark:bg-destructive/20"
           loading={statsLoading}
         />
         <StatCard
           icon={TrendingUp}
-          label="Completed This Week"
+          label={t('dashboard.completed')}
           value={stats?.completedThisWeek}
           color="bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/20"
           loading={statsLoading}
@@ -192,10 +188,10 @@ export default function DashboardPage() {
           <Card className="border-border">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-semibold">My Tasks</CardTitle>
+                <CardTitle className="text-base font-semibold">{t('common.myTasks')}</CardTitle>
                 <Link href="/my-tasks">
                   <Button variant="ghost" size="sm" className="text-primary text-xs h-7">
-                    View all <ArrowRight className="w-3 h-3 ml-1" />
+                    {t('common.viewAll')} <ArrowRight className="w-3 h-3 ml-1" />
                   </Button>
                 </Link>
               </div>
@@ -210,7 +206,7 @@ export default function DashboardPage() {
               ) : !myTasks?.length ? (
                 <div className="text-center py-8">
                    <CheckSquare className="w-10 h-10 text-muted-foreground/20 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground/60">No tasks assigned to you</p>
+                  <p className="text-sm text-muted-foreground/60">{t('common.noTasks')}</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -263,7 +259,7 @@ export default function DashboardPage() {
         <div>
           <Card className="border-border">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
+              <CardTitle className="text-base font-semibold">{t('dashboard.recentActivity')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               {statsLoading ? (
@@ -279,7 +275,7 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : !stats?.recentActivity?.length ? (
-                 <p className="text-sm text-muted-foreground/60 text-center py-8">No recent activity</p>
+                 <p className="text-sm text-muted-foreground/60 text-center py-8">{t('common.noActivity')}</p>
               ) : (
                 <div className="space-y-4">
                   {stats.recentActivity.map((activity) => (
@@ -315,7 +311,7 @@ export default function DashboardPage() {
           {/* Quick actions */}
           <Card className="border-border mt-4">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
+              <CardTitle className="text-base font-semibold">{t('dashboard.quickActions')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-2">
               <Button
@@ -324,7 +320,7 @@ export default function DashboardPage() {
                 onClick={openCreateProject}
               >
                 <Plus className="w-4 h-4" />
-                Create New Project
+                {t('dashboard.createNewProject')}
               </Button>
               <Link href="/my-tasks" className="block">
                 <Button
@@ -332,7 +328,7 @@ export default function DashboardPage() {
                   className="w-full justify-start gap-2 h-9 text-sm border-border hover:border-primary/30 hover:bg-primary/10 hover:text-primary"
                 >
                   <CheckSquare className="w-4 h-4" />
-                  View All My Tasks
+                  {t('dashboard.viewAllMyTasks')}
                 </Button>
               </Link>
             </CardContent>

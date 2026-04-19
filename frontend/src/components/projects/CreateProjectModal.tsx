@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 const COLORS = [
   '#00A86B', // Emerald
@@ -29,6 +30,7 @@ const COLORS = [
 ];
 
 export function CreateProjectModal() {
+  const t = useTranslations();
   const { isCreateProjectOpen, closeCreateProject } = useUIStore();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -43,7 +45,7 @@ export function CreateProjectModal() {
       api.post<{ id: string }>('/api/projects', data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      toast({ title: 'Project created successfully' });
+      toast({ title: t('projects.projectCreated') });
       closeCreateProject();
       setName('');
       setDescription('');
@@ -53,8 +55,8 @@ export function CreateProjectModal() {
     onError: (err: any) => {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: err.response?.data?.message || 'Failed to create project',
+        title: 'Error', // Or use generic error key
+        description: err.response?.data?.message || t('common.updatedError'),
       });
     },
   });
@@ -69,11 +71,11 @@ export function CreateProjectModal() {
     <Dialog open={isCreateProjectOpen} onOpenChange={(open) => !open && closeCreateProject()}>
       <DialogContent className="sm:max-w-[425px] bg-background border-border shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-foreground">Create New Project</DialogTitle>
+          <DialogTitle className="text-foreground">{t('projects.createNewProject')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Project Name</Label>
+            <Label htmlFor="name">{t('projects.projectName')}</Label>
             <Input
               id="name"
               placeholder="e.g. Website Redesign"
@@ -84,17 +86,17 @@ export function CreateProjectModal() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Description (optional)</Label>
+            <Label htmlFor="description">{t('projects.descriptionOptional')}</Label>
             <Input
               id="description"
-              placeholder="Brief description of the project"
+              placeholder={t('projects.briefDescription')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="bg-background border-border text-foreground focus-visible:ring-primary"
             />
           </div>
           <div className="space-y-2 pt-2">
-            <Label>Project Color</Label>
+            <Label>{t('projects.projectColor')}</Label>
             <div className="flex gap-2.5">
               {COLORS.map((c) => (
                 <button
@@ -116,11 +118,11 @@ export function CreateProjectModal() {
               onClick={closeCreateProject}
               disabled={createMutation.isPending}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={createMutation.isPending || !name.trim()}>
               {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Create Project
+              {t('projects.createButton')}
             </Button>
           </DialogFooter>
         </form>

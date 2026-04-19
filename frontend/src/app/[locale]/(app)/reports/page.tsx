@@ -9,16 +9,17 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ErrorState } from '@/components/ui/error-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { STATUS_CONFIG, PRIORITY_CONFIG, formatDate } from '@/lib/utils';
+import { STATUS_CONFIG, formatDate } from '@/lib/utils';
 import { BarChart3, PieChart as PieChartIcon, TrendingUp, AlertCircle, Calendar, Clock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTranslations } from 'next-intl';
 
 const COLORS = ['#00A86B', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'];
 
 export default function ReportsPage() {
+  const t = useTranslations();
   const [days, setDays] = useState('30');
 
   const workloadQuery = useQuery({
@@ -51,23 +52,23 @@ export default function ReportsPage() {
     <div className="view-container pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Reports & Analytics</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t('reports.title')}</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Overview of workspace performance, task completion, and team workload.
+            {t('reports.description')}
           </p>
         </div>
         <div className="flex items-center gap-2 bg-muted/20 px-3 py-1.5 rounded-lg border border-border/50">
           <Calendar className="w-4 h-4 text-muted-foreground/60" />
-          <span className="text-sm text-muted-foreground/80 font-medium">Time range:</span>
+          <span className="text-sm text-muted-foreground/80 font-medium">{t('common.timeRange')}</span>
           <Select value={days} onValueChange={setDays}>
             <SelectTrigger className="w-[140px] bg-background h-8 border-border hover:border-border/80 transition-colors">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-card border-border">
-              <SelectItem value="7">Last 7 days</SelectItem>
-              <SelectItem value="14">Last 14 days</SelectItem>
-              <SelectItem value="30">Last 30 days</SelectItem>
-              <SelectItem value="90">Last 90 days</SelectItem>
+              <SelectItem value="7">{t('common.last7Days')}</SelectItem>
+              <SelectItem value="14">{t('common.last14Days')}</SelectItem>
+              <SelectItem value="30">{t('common.last30Days')}</SelectItem>
+              <SelectItem value="90">{t('common.last90Days')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -75,7 +76,7 @@ export default function ReportsPage() {
 
       {anyError && (
         <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-4 mb-6 flex items-center justify-between gap-4">
-          <p className="text-sm text-destructive font-medium">Some data failed to load. Charts may be incomplete.</p>
+          <p className="text-sm text-destructive font-medium">{t('reports.dataLoadError')}</p>
           <button
             onClick={() => {
               if (workloadQuery.isError) workloadQuery.refetch();
@@ -85,7 +86,7 @@ export default function ReportsPage() {
             }}
             className="text-sm font-semibold text-destructive hover:underline"
           >
-            Retry
+            {t('common.retry')}
           </button>
         </div>
       )}
@@ -96,9 +97,9 @@ export default function ReportsPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-primary" />
-              <CardTitle className="text-base">Task Completion Over Time</CardTitle>
+              <CardTitle className="text-base">{t('reports.taskCompletion')}</CardTitle>
             </div>
-            <CardDescription>Number of tasks completed per day</CardDescription>
+            <CardDescription>{t('reports.taskCompletionDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             {pLoading ? <Skeleton className="h-[300px] w-full" /> : (
@@ -109,7 +110,7 @@ export default function ReportsPage() {
                     <XAxis dataKey="date" tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})} tick={{fontSize: 12, fill: 'currentColor'}} className="text-muted-foreground" axisLine={false} tickLine={false} />
                     <YAxis tick={{fontSize: 12, fill: 'currentColor'}} className="text-muted-foreground" axisLine={false} tickLine={false} />
                     <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                    <Line type="monotone" dataKey="count" name="Tasks Done" stroke="#00A86B" strokeWidth={3} dot={false} activeDot={{r: 6}} />
+                    <Line type="monotone" dataKey="count" name={t('common.tasksDone')} stroke="#00A86B" strokeWidth={3} dot={false} activeDot={{r: 6}} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -122,9 +123,9 @@ export default function ReportsPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <PieChartIcon className="w-5 h-5 text-blue-500" />
-              <CardTitle className="text-base">Tasks by Status</CardTitle>
+              <CardTitle className="text-base">{t('reports.tasksByStatus')}</CardTitle>
             </div>
-            <CardDescription>Total tasks across all active projects</CardDescription>
+            <CardDescription>{t('reports.tasksByStatusDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             {sLoading ? <Skeleton className="h-[300px] w-full" /> : (
@@ -152,12 +153,12 @@ export default function ReportsPage() {
                       })}
                     </Pie>
                     <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }} />
-                    <Legend verticalAlign="bottom" height={36} formatter={(val) => STATUS_CONFIG[val as keyof typeof STATUS_CONFIG]?.label || val} />
+                    <Legend verticalAlign="bottom" height={36} formatter={(val) => t(`status.${val}`) || val} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8">
                   <span className="text-3xl font-bold text-foreground">{statusDist?.total || 0}</span>
-                  <span className="text-xs text-muted-foreground font-medium">TOTAL TASKS</span>
+                  <span className="text-xs text-muted-foreground font-medium">{t('common.total')}</span>
                 </div>
               </div>
             )}
@@ -171,9 +172,9 @@ export default function ReportsPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-indigo-500" />
-              <CardTitle className="text-base">Workload per Member</CardTitle>
+              <CardTitle className="text-base">{t('reports.workloadPerMember')}</CardTitle>
             </div>
-            <CardDescription>Tasks assigned per user by status</CardDescription>
+            <CardDescription>{t('reports.workloadPerMemberDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             {wLoading ? <Skeleton className="h-[350px] w-full" /> : (
@@ -184,11 +185,11 @@ export default function ReportsPage() {
                     <XAxis dataKey="user.name" tick={{fontSize: 12, fill: 'currentColor'}} className="text-muted-foreground" axisLine={false} tickLine={false} />
                     <YAxis tick={{fontSize: 12, fill: 'currentColor'}} className="text-muted-foreground" axisLine={false} tickLine={false} />
                     <RechartsTooltip cursor={{ fill: 'hsl(var(--muted)/0.3)' }} contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }} />
-                    <Legend />
-                    <Bar dataKey="todo" name="To Do" stackId="a" fill="#94A3B8" radius={[0, 0, 4, 4]} />
-                    <Bar dataKey="inProgress" name="In Progress" stackId="a" fill="#3B82F6" />
-                    <Bar dataKey="review" name="Review" stackId="a" fill="#F59E0B" />
-                    <Bar dataKey="done" name="Done" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]} />
+                    <Legend formatter={(val) => t(`status.${val === 'todo' ? 'TODO' : val === 'inProgress' ? 'IN_PROGRESS' : val === 'review' ? 'REVIEW' : 'DONE'}`)} />
+                    <Bar dataKey="todo" name="todo" stackId="a" fill="#94A3B8" radius={[0, 0, 4, 4]} />
+                    <Bar dataKey="inProgress" name="inProgress" stackId="a" fill="#3B82F6" />
+                    <Bar dataKey="review" name="review" stackId="a" fill="#F59E0B" />
+                    <Bar dataKey="done" name="done" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -202,7 +203,7 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-destructive" />
-                <CardTitle className="text-base text-foreground/90">Overdue Tasks</CardTitle>
+                <CardTitle className="text-base text-foreground/90">{t('reports.overdueTasks')}</CardTitle>
               </div>
               <span className="text-sm font-medium text-destructive bg-destructive/10 px-2 py-0.5 rounded-full">
                 {overdue?.length || 0}
@@ -216,14 +217,14 @@ export default function ReportsPage() {
                 <Skeleton className="h-10 w-full" />
               </div>
             ) : !overdue?.length ? (
-              <div className="py-8 text-center text-muted-foreground">No overdue tasks. Great job! 🎉</div>
+              <div className="py-8 text-center text-muted-foreground">{t('reports.noOverdueTasks')}</div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="pl-6">Task</TableHead>
-                    <TableHead>Assignee</TableHead>
-                    <TableHead>Due Date</TableHead>
+                    <TableHead className="pl-6">{t('common.tasks')}</TableHead>
+                    <TableHead>{t('common.assignee')}</TableHead>
+                    <TableHead>{t('common.dueDate')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -245,7 +246,7 @@ export default function ReportsPage() {
                             <span className="text-xs text-foreground/80">{task.assignee.name}</span>
                           </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground/40 italic">Unassigned</span>
+                          <span className="text-xs text-muted-foreground/40 italic">{t('projects.unassigned')}</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -270,6 +271,7 @@ export default function ReportsPage() {
 }
 
 function TimeSummaryCard() {
+  const t = useTranslations();
   const { data: summary, isLoading } = useQuery({
     queryKey: ['reports-time-summary'],
     queryFn: () => api.get<any>('/api/reports/time-summary'),
@@ -281,16 +283,16 @@ function TimeSummaryCard() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-teal-500" />
-            <CardTitle className="text-base">Time Logged Summary</CardTitle>
+            <CardTitle className="text-base">{t('reports.timeLoggedSummary')}</CardTitle>
           </div>
           {summary && (
             <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold border border-primary/20">
               <Clock className="w-3.5 h-3.5" />
-              {summary.totalHours?.toFixed(1)} hrs total
+              {t('common.hrsTotal', { hours: summary.totalHours?.toFixed(1) })}
             </div>
           )}
         </div>
-        <CardDescription>Hours logged per project and per team member</CardDescription>
+        <CardDescription>{t('reports.timeLoggedSummaryDesc')}</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -302,13 +304,13 @@ function TimeSummaryCard() {
         ) : !summary?.totalHours ? (
           <div className="py-8 text-center text-muted-foreground">
             <Clock className="w-10 h-10 mx-auto mb-3 opacity-10" />
-            <p className="text-sm">No time logged yet. Start tracking time from task detail panels.</p>
+            <p className="text-sm">{t('reports.noTimeLogged')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* By Project */}
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">By Project</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t('reports.byProject')}</p>
               <div className="space-y-2">
                 {summary.byProject?.map((item: any) => {
                   const pct = summary.totalHours > 0 ? (item.hours / summary.totalHours) * 100 : 0;
@@ -319,7 +321,7 @@ function TimeSummaryCard() {
                           <span className="w-2.5 h-2.5 rounded-full" style={{ background: item.project.color }} />
                           <span className="text-sm text-foreground font-medium">{item.project.name}</span>
                         </div>
-                        <span className="text-xs font-semibold text-muted-foreground">{item.hours.toFixed(1)} hrs</span>
+                        <span className="text-xs font-semibold text-muted-foreground">{t('common.hrs', { hours: item.hours.toFixed(1) })}</span>
                       </div>
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                         <div className="h-full rounded-full bg-teal-500" style={{ width: `${pct}%` }} />
@@ -331,7 +333,7 @@ function TimeSummaryCard() {
             </div>
             {/* By Member */}
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">By Member</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t('reports.byMember')}</p>
               <div className="space-y-2.5">
                 {summary.byMember?.map((item: any) => {
                   const pct = summary.totalHours > 0 ? (item.hours / summary.totalHours) * 100 : 0;
@@ -346,7 +348,7 @@ function TimeSummaryCard() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-0.5">
                           <span className="text-sm text-foreground font-medium truncate">{item.user.name}</span>
-                          <span className="text-xs font-semibold text-muted-foreground ml-2 flex-shrink-0">{item.hours.toFixed(1)} hrs</span>
+                          <span className="text-xs font-semibold text-muted-foreground ml-2 flex-shrink-0">{t('common.hrs', { hours: item.hours.toFixed(1) })}</span>
                         </div>
                         <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                           <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />

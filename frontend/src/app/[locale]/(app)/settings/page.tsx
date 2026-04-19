@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, User, Building, ShieldAlert, KeyRound, Bell, Mail, Loader2, Save, UserPlus, Sun, Moon, Monitor, Palette } from 'lucide-react';
+import { Settings, User, Building, ShieldAlert, Bell, Loader2, Save, Sun, Moon, Monitor, Palette } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -20,8 +20,10 @@ import { useTheme } from 'next-themes';
 import { useUIStore, AppTheme } from '@/stores/uiStore';
 import { Check, Users } from 'lucide-react';
 import { TeamTab } from '@/components/settings/TeamTab';
+import { useTranslations } from 'next-intl';
 
 export default function SettingsPage() {
+  const t = useTranslations();
   const { user, setUser } = useAuthStore();
   const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
@@ -61,9 +63,9 @@ export default function SettingsPage() {
     mutationFn: (data: { name: string }) => api.put('/api/users/profile/update', data),
     onSuccess: (data: any) => {
       setUser(data);
-      toast({ title: 'Profile updated successfully' });
+      toast({ title: t('common.updatedSuccess') });
     },
-    onError: () => toast({ title: 'Failed to update profile', variant: 'destructive' })
+    onError: () => toast({ title: t('common.updatedError'), variant: 'destructive' })
   });
 
   const updateAvatar = useMutation({
@@ -74,16 +76,16 @@ export default function SettingsPage() {
     },
     onSuccess: (data: any) => {
       setUser(data);
-      toast({ title: 'Avatar updated successfully' });
+      toast({ title: t('common.updatedSuccess') });
     },
-    onError: () => toast({ title: 'Failed to update avatar', variant: 'destructive' })
+    onError: () => toast({ title: t('common.updatedError'), variant: 'destructive' })
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        toast({ title: 'File too large', description: 'Maximum size is 2MB', variant: 'destructive' });
+        toast({ title: t('common.fileTooLarge'), description: t('common.maxSize2MB'), variant: 'destructive' });
         return;
       }
       updateAvatar.mutate(file);
@@ -94,9 +96,9 @@ export default function SettingsPage() {
     mutationFn: (data: any) => api.put('/api/users/profile/update', data),
     onSuccess: (data: any) => {
       setUser(data);
-      toast({ title: 'Email preferences updated' });
+      toast({ title: t('common.updatedSuccess') });
     },
-    onError: () => toast({ title: 'Failed to update preferences', variant: 'destructive' })
+    onError: () => toast({ title: t('common.updatedError'), variant: 'destructive' })
   });
 
   const updateOrganization = useMutation({
@@ -104,9 +106,9 @@ export default function SettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['current-organization'] });
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
-      toast({ title: 'Workspace updated successfully' });
+      toast({ title: t('common.updatedSuccess') });
     },
-    onError: () => toast({ title: 'Failed to update workspace', variant: 'destructive' })
+    onError: () => toast({ title: t('common.updatedError'), variant: 'destructive' })
   });
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -120,10 +122,10 @@ export default function SettingsPage() {
         <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Settings className="w-6 h-6 text-primary" />
-          Settings
+          {t('settings.title')}
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Manage your personal profile and workspace preferences.
+          {t('settings.description')}
         </p>
       </div>
 
@@ -137,7 +139,7 @@ export default function SettingsPage() {
               )}
             >
               <User className="w-4 h-4 mr-2" />
-              Profile Settings
+              {t('settings.profile')}
             </TabsTrigger>
             
             <TabsTrigger 
@@ -147,7 +149,7 @@ export default function SettingsPage() {
               )}
             >
               <Bell className="w-4 h-4 mr-2" />
-              Notifications
+              {t('settings.notifications')}
             </TabsTrigger>
 
             <TabsTrigger 
@@ -157,7 +159,7 @@ export default function SettingsPage() {
               )}
             >
               <Palette className="w-4 h-4 mr-2" />
-              Appearance
+              {t('settings.appearance')}
             </TabsTrigger>
             
             {user?.role === 'ADMIN' && (
@@ -169,7 +171,7 @@ export default function SettingsPage() {
                   )}
                 >
                   <Building className="w-4 h-4 mr-2" />
-                  Workspace (Admin)
+                  {t('settings.workspace')}
                 </TabsTrigger>
                 
                 <TabsTrigger 
@@ -179,7 +181,7 @@ export default function SettingsPage() {
                   )}
                 >
                   <Users className="w-4 h-4 mr-2" />
-                  Team Management
+                  {t('settings.team')}
                 </TabsTrigger>
               </>
             )}
@@ -190,8 +192,8 @@ export default function SettingsPage() {
             <TabsContent value="profile" className="m-0 space-y-6 outline-none">
               <Card className="border-border/50 shadow-none bg-card/50">
                 <CardHeader>
-                  <CardTitle className="text-lg">Personal Information</CardTitle>
-                  <CardDescription className="text-muted-foreground">Update your display name and avatar.</CardDescription>
+                  <CardTitle className="text-lg">{t('settings.personalInfo')}</CardTitle>
+                  <CardDescription className="text-muted-foreground">{t('settings.personalInfoDesc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-6 mb-6">
@@ -202,7 +204,7 @@ export default function SettingsPage() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="space-y-2">
-                      <Input 
+                      <input 
                         type="file" 
                         ref={fileInputRef} 
                         className="hidden" 
@@ -217,25 +219,25 @@ export default function SettingsPage() {
                         disabled={updateAvatar.isPending}
                       >
                         {updateAvatar.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : null}
-                        Upload new picture
+                        {t('settings.uploadAvatar')}
                       </Button>
-                      <p className="text-[10px] text-muted-foreground opacity-70">JPG, GIF or PNG. Max size of 2MB.</p>
+                      <p className="text-[10px] text-muted-foreground opacity-70">{t('settings.avatarHint')}</p>
                     </div>
                   </div>
 
                   <form onSubmit={handleSaveProfile} className="space-y-4 max-w-md">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
+                      <Label htmlFor="name">{t('settings.fullName')}</Label>
                       <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email Address <span className="text-xs text-muted-foreground font-normal ml-2">(Cannot be changed)</span></Label>
+                      <Label htmlFor="email">{t('settings.email')} <span className="text-xs text-muted-foreground font-normal ml-2">{t('settings.emailHint')}</span></Label>
                       <Input id="email" value={user?.email || ''} readOnly className="bg-muted text-muted-foreground select-none cursor-not-allowed" />
                     </div>
 
                     <Button type="submit" disabled={updateProfile.isPending || name === user?.name}>
-                      {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
+                      {updateProfile.isPending ? t('common.saving') : t('common.saveChanges')}
                     </Button>
                   </form>
                 </CardContent>
@@ -244,15 +246,15 @@ export default function SettingsPage() {
               <Card className="border-border/50 shadow-none bg-card/50">
                 <CardHeader>
                   <CardTitle className="text-lg text-red-600 flex items-center gap-2">
-                    <ShieldAlert className="w-5 h-5" /> Security
+                    <ShieldAlert className="w-5 h-5" /> {t('settings.security')}
                   </CardTitle>
-                  <CardDescription>Manage your password and security settings.</CardDescription>
+                  <CardDescription>{t('settings.securityDesc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between py-2">
                     <div>
-                      <p className="text-sm font-medium text-foreground">Password</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Change your password to keep your account secure.</p>
+                      <p className="text-sm font-medium text-foreground">{t('settings.password')}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t('settings.passwordDesc')}</p>
                     </div>
                     <ChangePasswordModal />
                   </div>
@@ -264,14 +266,14 @@ export default function SettingsPage() {
             <TabsContent value="notifications" className="m-0 space-y-6 outline-none">
               <Card className="border-border/50 shadow-none bg-card/50">
                 <CardHeader>
-                  <CardTitle className="text-lg">Email Preferences</CardTitle>
-                  <CardDescription>Choose what notifications you receive via email.</CardDescription>
+                  <CardTitle className="text-lg">{t('settings.emailPrefs')}</CardTitle>
+                  <CardDescription>{t('settings.emailPrefsDesc')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                      <Label className="text-sm font-medium">Daily Summary</Label>
-                      <p className="text-xs text-muted-foreground/60">Receive a daily email digest of your pending tasks.</p>
+                      <Label className="text-sm font-medium">{t('settings.dailySummary')}</Label>
+                      <p className="text-xs text-muted-foreground/60">{t('settings.dailySummaryDesc')}</p>
                     </div>
                     <Switch 
                       checked={prefDaily} 
@@ -280,8 +282,8 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                      <Label className="text-sm font-medium">Mentions & Comments</Label>
-                      <p className="text-xs text-muted-foreground/60">Get notified when someone tags you or comments on your tasks.</p>
+                      <Label className="text-sm font-medium">{t('settings.mentionsComments')}</Label>
+                      <p className="text-xs text-muted-foreground/60">{t('settings.mentionsCommentsDesc')}</p>
                     </div>
                     <Switch 
                       checked={prefMentions} 
@@ -290,8 +292,8 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                      <Label className="text-sm font-medium">Task Assignments</Label>
-                      <p className="text-xs text-muted-foreground">Receive an email instantly when a new task is assigned to you.</p>
+                      <Label className="text-sm font-medium">{t('settings.taskAssignments')}</Label>
+                      <p className="text-xs text-muted-foreground">{t('settings.taskAssignmentsDesc')}</p>
                     </div>
                     <Switch 
                       checked={prefAssignments} 
@@ -309,7 +311,7 @@ export default function SettingsPage() {
                     className="gap-2"
                   >
                     {updatePreferences.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    Save Preferences
+                    {t('common.savePreferences')}
                   </Button>
                 </CardContent>
               </Card>
@@ -319,15 +321,15 @@ export default function SettingsPage() {
             <TabsContent value="appearance" className="m-0 space-y-6 outline-none">
               <Card className="border-border/50 shadow-none bg-card/50">
                 <CardHeader>
-                  <CardTitle className="text-lg">Appearance</CardTitle>
-                  <CardDescription>Customize how Joino looks on your device.</CardDescription>
+                  <CardTitle className="text-lg">{t('settings.appearance')}</CardTitle>
+                  <CardDescription>{t('common.customizeAppearance')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[
-                      { id: 'light', label: 'Light', icon: <Sun className="w-5 h-5" /> },
-                      { id: 'dark', label: 'Dark', icon: <Moon className="w-5 h-5" /> },
-                      { id: 'system', label: 'System', icon: <Monitor className="w-5 h-5" /> },
+                      { id: 'light', icon: <Sun className="w-5 h-5" /> },
+                      { id: 'dark', icon: <Moon className="w-5 h-5" /> },
+                      { id: 'system', icon: <Monitor className="w-5 h-5" /> },
                     ].map((item) => (
                       <button
                         key={item.id}
@@ -345,7 +347,7 @@ export default function SettingsPage() {
                         )}>
                           {item.icon}
                         </div>
-                        <span className="font-semibold text-sm">{item.label}</span>
+                        <span className="font-semibold text-sm">{t(`settings.themes.${item.id}`)}</span>
                       </button>
                     ))}
                   </div>
@@ -354,33 +356,33 @@ export default function SettingsPage() {
 
               <Card className="border-border/50 shadow-none bg-card/50">
                 <CardHeader>
-                  <CardTitle className="text-lg">Color Template</CardTitle>
-                  <CardDescription>Choose the primary brand color for your workspace.</CardDescription>
+                  <CardTitle className="text-lg">{t('settings.colorTemplate')}</CardTitle>
+                  <CardDescription>{t('settings.colorTemplateDesc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
+                   <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
                     {[
-                      { id: 'default', color: 'bg-[#00A86B]', label: 'Wrike' },
-                      { id: 'blue',    color: 'bg-[#3b82f6]', label: 'Ocean' },
-                      { id: 'purple',  color: 'bg-[#8b5cf6]', label: 'Royal' },
-                      { id: 'teal',    color: 'bg-[#0d9488]', label: 'Teal' },
-                      { id: 'orange',  color: 'bg-[#f97316]', label: 'Sunset' },
-                      { id: 'indigo',  color: 'bg-[#6366f1]', label: 'Indigo' },
-                      { id: 'rose',    color: 'bg-[#f43f5e]', label: 'Rose' },
-                      { id: 'teal-mint', color: 'bg-[#14b8a6]', label: 'Mint' },
-                    ].map((t) => (
+                      { id: 'default', color: 'bg-[#00A86B]' },
+                      { id: 'blue',    color: 'bg-[#3b82f6]' },
+                      { id: 'purple',  color: 'bg-[#8b5cf6]' },
+                      { id: 'teal',    color: 'bg-[#0d9488]' },
+                      { id: 'orange',  color: 'bg-[#f97316]' },
+                      { id: 'indigo',  color: 'bg-[#6366f1]' },
+                      { id: 'rose',    color: 'bg-[#f43f5e]' },
+                      { id: 'teal-mint', color: 'bg-[#14b8a6]' },
+                    ].map((tt) => (
                       <button
-                        key={t.id}
-                        onClick={() => setAppTheme(t.id as AppTheme)}
+                        key={tt.id}
+                        onClick={() => setAppTheme(tt.id as AppTheme)}
                         className={cn(
                           "flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all",
-                          appTheme === t.id ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-transparent hover:bg-muted/50"
+                          appTheme === tt.id ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-transparent hover:bg-muted/50"
                         )}
                       >
-                        <div className={cn("w-full aspect-square rounded-lg shadow-sm flex items-center justify-center", t.color)}>
-                          {appTheme === t.id && <Check className="w-5 h-5 text-white" />}
+                        <div className={cn("w-full aspect-square rounded-lg shadow-sm flex items-center justify-center", tt.color)}>
+                          {appTheme === tt.id && <Check className="w-5 h-5 text-white" />}
                         </div>
-                        <span className="text-[10px] font-medium truncate w-full text-center">{t.label}</span>
+                        <span className="text-[10px] font-medium truncate w-full text-center">{t(`settings.themes.${tt.id}`)}</span>
                       </button>
                     ))}
                   </div>
@@ -393,12 +395,12 @@ export default function SettingsPage() {
               <TabsContent value="workspace" className="m-0 space-y-6 outline-none">
                 <Card className="border-border/50 shadow-none bg-card/50">
                   <CardHeader>
-                    <CardTitle className="text-lg">Workspace Configuration</CardTitle>
-                    <CardDescription>Configure global settings for your organization.</CardDescription>
+                    <CardTitle className="text-lg">{t('settings.wsConfig')}</CardTitle>
+                    <CardDescription>{t('settings.wsConfigDesc')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4 max-w-md">
                      <div className="space-y-2">
-                      <Label htmlFor="wsName">Workspace Name</Label>
+                      <Label htmlFor="wsName">{t('settings.wsName')}</Label>
                       <Input 
                         id="wsName" 
                         value={wsName} 
@@ -412,7 +414,7 @@ export default function SettingsPage() {
                       className="gap-2"
                     >
                       {updateOrganization.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                      Save Configuration
+                      {t('common.saveConfiguration')}
                     </Button>
                   </CardContent>
                 </Card>

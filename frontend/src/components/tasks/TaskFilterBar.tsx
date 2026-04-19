@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface TaskFilters {
@@ -37,13 +38,6 @@ export const DEFAULT_FILTERS: TaskFilters = {
 
 export type GroupByField = 'status' | 'priority' | 'assignee' | 'none';
 
-export const GROUP_BY_OPTIONS: { value: GroupByField; label: string }[] = [
-  { value: 'status',   label: 'Status'   },
-  { value: 'priority', label: 'Priority' },
-  { value: 'assignee', label: 'Assignee' },
-  { value: 'none',     label: 'No grouping' },
-];
-
 // ─── Multi-select filter pill ─────────────────────────────────────────────────
 function MultiSelectFilter<T extends string>({
   label,
@@ -60,6 +54,7 @@ function MultiSelectFilter<T extends string>({
   onChange: (vals: T[]) => void;
   renderOption?: (o: { value: T; label: string }) => React.ReactNode;
 }) {
+  const t = useTranslations();
   const toggle = (val: T) => {
     onChange(
       selected.includes(val)
@@ -114,7 +109,7 @@ function MultiSelectFilter<T extends string>({
               className="text-xs cursor-pointer text-muted-foreground/60 focus:text-destructive"
               onClick={() => onChange([])}
             >
-              Clear filter
+              {t('common.clearFilter')}
             </DropdownMenuItem>
           </>
         )}
@@ -145,6 +140,15 @@ export function TaskFilterBar({
   filteredCount,
   onExport,
 }: TaskFilterBarProps) {
+  const t = useTranslations();
+
+  const GROUP_BY_OPTIONS: { value: GroupByField; label: string }[] = [
+    { value: 'status',   label: t('common.status') },
+    { value: 'priority', label: t('common.priority') },
+    { value: 'assignee', label: t('common.assignee') },
+    { value: 'none',     label: t('common.noGrouping') },
+  ];
+
   // Fetch project members for assignee filter
   const { data: members } = useQuery({
     queryKey: ['project-members', projectId],
@@ -160,14 +164,14 @@ export function TaskFilterBar({
   // ── Status options ──────────────────────────────────────────────────────────
   const statusOptions = Object.entries(STATUS_CONFIG).map(([key, val]) => ({
     value: key,
-    label: val.label,
+    label: t(`status.${key}`),
     dotColor: val.dotColor,
   }));
 
   // ── Priority options ────────────────────────────────────────────────────────
   const priorityOptions = Object.entries(PRIORITY_CONFIG).map(([key, val]) => ({
     value: key,
-    label: val.label,
+    label: t(`priority.${key}`),
   }));
 
   const PRIORITY_DOTS: Record<string, string> = {
@@ -180,7 +184,7 @@ export function TaskFilterBar({
   // ── Assignee options ────────────────────────────────────────────────────────
   const assigneeOptions = (members || []).map((m: any) => ({
     value: m.id as string,
-    label: m.name || 'Unknown',
+    label: m.name || t('projects.unassigned'),
     avatar: m.avatar,
   }));
 
@@ -189,12 +193,12 @@ export function TaskFilterBar({
       {/* Filter icon */}
       <div className="flex items-center gap-1.5 text-muted-foreground/40">
         <Filter className="w-3.5 h-3.5" />
-        <span className="text-[11px] font-medium text-muted-foreground">Filter:</span>
+        <span className="text-[11px] font-medium text-muted-foreground">{t('filter.label')}</span>
       </div>
 
       {/* Status filter */}
       <MultiSelectFilter
-        label="Status"
+        label={t('filter.status')}
         icon={<Circle className="w-3 h-3" />}
         options={statusOptions}
         selected={filters.statuses}
@@ -209,7 +213,7 @@ export function TaskFilterBar({
 
       {/* Priority filter */}
       <MultiSelectFilter
-        label="Priority"
+        label={t('filter.priority')}
         icon={<Flag className="w-3 h-3" />}
         options={priorityOptions}
         selected={filters.priorities}
@@ -225,7 +229,7 @@ export function TaskFilterBar({
       {/* Assignee filter */}
       {assigneeOptions.length > 0 && (
         <MultiSelectFilter
-          label="Assignee"
+          label={t('filter.assignee')}
           icon={<User className="w-3 h-3" />}
           options={assigneeOptions}
           selected={filters.assigneeIds}
@@ -257,7 +261,7 @@ export function TaskFilterBar({
               : 'border-border bg-card text-muted-foreground hover:border-border/80'
           )}>
             <SlidersHorizontal className="w-3 h-3" />
-            Group: {GROUP_BY_OPTIONS.find(o => o.value === groupBy)?.label}
+            {t('common.group')}: {GROUP_BY_OPTIONS.find(o => o.value === groupBy)?.label}
             <ChevronDown className="w-3 h-3 ml-0.5 opacity-60" />
           </button>
         </DropdownMenuTrigger>
@@ -281,7 +285,7 @@ export function TaskFilterBar({
           onClick={clearAll}
           className="flex items-center gap-1 h-7 px-2 rounded-md text-xs text-destructive hover:bg-destructive/10 transition-colors border border-destructive/20 active:scale-95"
         >
-          <X className="w-3 h-3" /> Clear
+          <X className="w-3 h-3" /> {t('common.clear')}
         </button>
       )}
 
@@ -292,7 +296,7 @@ export function TaskFilterBar({
           className="flex items-center gap-1 h-7 px-2 ml-1 rounded-md text-xs text-muted-foreground hover:bg-muted transition-colors border border-border"
           title="Export tasks to CSV"
         >
-          <Download className="w-3 h-3" /> Export
+          <Download className="w-3 h-3" /> {t('common.export')}
         </button>
       )}
 
@@ -300,8 +304,8 @@ export function TaskFilterBar({
       {totalCount !== undefined && (
         <span className="ml-auto text-[11px] text-muted-foreground/60">
           {filteredCount !== totalCount
-            ? `${filteredCount} of ${totalCount} tasks`
-            : `${totalCount} task${totalCount !== 1 ? 's' : ''}`}
+            ? `${filteredCount} ${t('common.of')} ${totalCount} ${t('common.taskCount', { count: totalCount })}`
+            : `${totalCount} ${t('common.taskCount', { count: totalCount })}`}
         </span>
       )}
     </div>
@@ -320,57 +324,4 @@ export function applyFilters(tasks: any[], filters: TaskFilters): any[] {
     }
     return true;
   });
-}
-
-// ─── Group utility ────────────────────────────────────────────────────────────
-export function groupTasks(
-  tasks: any[],
-  groupBy: GroupByField
-): Array<{ key: string; label: string; dotColor?: string; tasks: any[] }> {
-  if (groupBy === 'none') {
-    return [{ key: 'all', label: 'All Tasks', tasks }];
-  }
-
-  if (groupBy === 'status') {
-    return Object.entries(STATUS_CONFIG).map(([key, { label, dotColor }]) => ({
-      key,
-      label,
-      dotColor,
-      tasks: tasks.filter((t) => t.status === key),
-    }));
-  }
-
-  if (groupBy === 'priority') {
-    const PRIORITY_DOTS: Record<string, string> = {
-      URGENT: PRIORITY_CONFIG.URGENT.dotColor,
-      HIGH: PRIORITY_CONFIG.HIGH.dotColor,
-      MEDIUM: PRIORITY_CONFIG.MEDIUM.dotColor,
-      LOW: PRIORITY_CONFIG.LOW.dotColor,
-    };
-    return Object.entries(PRIORITY_CONFIG)
-      .reverse()
-      .map(([key, { label }]) => ({
-        key,
-        label,
-        dotColor: PRIORITY_DOTS[key],
-        tasks: tasks.filter((t) => t.priority === key),
-      }));
-  }
-
-  if (groupBy === 'assignee') {
-    const groups: Record<string, { label: string; tasks: any[] }> = { unassigned: { label: 'Unassigned', tasks: [] } };
-    tasks.forEach((task) => {
-      if (!task.assignee) {
-        groups['unassigned'].tasks.push(task);
-      } else {
-        if (!groups[task.assigneeId]) {
-          groups[task.assigneeId] = { label: task.assignee.name, tasks: [] };
-        }
-        groups[task.assigneeId].tasks.push(task);
-      }
-    });
-    return Object.entries(groups).map(([key, { label, tasks }]) => ({ key, label, tasks }));
-  }
-
-  return [{ key: 'all', label: 'All Tasks', tasks }];
 }

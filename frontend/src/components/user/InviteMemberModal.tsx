@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useTranslations } from 'next-intl';
 
 interface InviteMemberModalProps {
   open: boolean;
@@ -23,6 +24,7 @@ interface InviteMemberModalProps {
 }
 
 export function InviteMemberModal({ open, onOpenChange }: InviteMemberModalProps) {
+  const t = useTranslations();
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('MEMBER');
   
@@ -34,15 +36,15 @@ export function InviteMemberModal({ open, onOpenChange }: InviteMemberModalProps
       api.post('/api/users/invite', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast({ title: 'Invitation sent carefully via email!' });
+      toast({ title: t('common.invitationSent') });
       onOpenChange(false);
       setEmail('');
       setRole('MEMBER');
     },
     onError: (error: any) => {
       toast({ 
-        title: 'Failed to invite member', 
-        description: error.response?.data?.message || 'Something went wrong.',
+        title: t('common.failedInvite'), 
+        description: error.response?.data?.message || t('common.somethingWrong'),
         variant: 'destructive',
       });
     }
@@ -59,11 +61,11 @@ export function InviteMemberModal({ open, onOpenChange }: InviteMemberModalProps
       <DialogContent className="sm:max-w-[425px] bg-background border-border shadow-2xl">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle className="text-foreground">Invite Member</DialogTitle>
+            <DialogTitle className="text-foreground">{t('common.inviteMember')}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4 mt-2">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('settings.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -75,26 +77,26 @@ export function InviteMemberModal({ open, onOpenChange }: InviteMemberModalProps
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="role">Role</Label>
+              <Label htmlFor="role">{t('common.role')}</Label>
               <Select value={role} onValueChange={setRole}>
                 <SelectTrigger className="bg-background border-border text-foreground hover:border-border/80 transition-colors">
-                  <SelectValue placeholder="Select a role" />
+                  <SelectValue placeholder={t('common.selectRole')} />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border">
-                  <SelectItem value="MEMBER">Member (Standard)</SelectItem>
-                  <SelectItem value="MANAGER">Manager (Project creation)</SelectItem>
-                  <SelectItem value="ADMIN">Admin (Full access)</SelectItem>
+                  <SelectItem value="MEMBER">{t('common.roleMemberStandard')}</SelectItem>
+                  <SelectItem value="MANAGER">{t('common.roleManagerStandard')}</SelectItem>
+                  <SelectItem value="ADMIN">{t('common.roleAdminStandard')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={inviteMutation.isPending}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={inviteMutation.isPending}>
               {inviteMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Send Invitation
+              {t('common.sendInvitation')}
             </Button>
           </DialogFooter>
         </form>

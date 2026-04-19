@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { Users, Mail, Loader2, Shield, Plus, ShieldAlert, Ban, Search } from 'lucide-react';
+import { Users, Mail, Shield, Plus, ShieldAlert, Ban, Search } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigge
 import { useAuthStore } from '@/stores/authStore';
 import { useToast } from '@/hooks/use-toast';
 import { InviteMemberModal } from '@/components/user/InviteMemberModal';
+import { useTranslations } from 'next-intl';
 
 interface User {
   id: string;
@@ -29,6 +30,7 @@ interface User {
 }
 
 export function TeamTab() {
+  const t = useTranslations();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const currentUser = useAuthStore(s => s.user);
@@ -51,27 +53,27 @@ export function TeamTab() {
     mutationFn: (id: string) => api.put(`/api/users/${id}/deactivate`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast({ title: 'User deactivated successfully' });
+      toast({ title: t('common.updatedSuccess') });
     },
-    onError: () => toast({ title: 'Failed to deactivate user', variant: 'destructive' })
+    onError: () => toast({ title: t('common.updatedError'), variant: 'destructive' })
   });
 
   const reactivateUser = useMutation({
     mutationFn: (id: string) => api.put(`/api/users/${id}/reactivate`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast({ title: 'User reactivated successfully' });
+      toast({ title: t('common.updatedSuccess') });
     },
-    onError: () => toast({ title: 'Failed to reactivate user', variant: 'destructive' })
+    onError: () => toast({ title: t('common.updatedError'), variant: 'destructive' })
   });
 
   const changeRole = useMutation({
     mutationFn: ({ id, role }: { id: string, role: string }) => api.put(`/api/users/${id}/role`, { role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast({ title: 'Role updated successfully' });
+      toast({ title: t('common.updatedSuccess') });
     },
-    onError: () => toast({ title: 'Failed to update role', variant: 'destructive' })
+    onError: () => toast({ title: t('common.updatedError'), variant: 'destructive' })
   });
 
   const filteredUsers = useMemo(() => {
@@ -81,16 +83,24 @@ export function TeamTab() {
     return users.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.role.toLowerCase().includes(q));
   }, [users, search]);
 
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'ADMIN': return t('common.roleAdmin');
+      case 'MANAGER': return t('common.roleManager');
+      default: return t('common.roleMember');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Users className="w-6 h-6 text-primary" />
-            Team Directory
+            {t('common.teamDirectory')}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Manage members, roles, and view workloads across your organization.
+            {t('common.teamDirectoryDesc')}
           </p>
         </div>
         
@@ -98,7 +108,7 @@ export function TeamTab() {
           <div className="relative">
             <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
             <Input 
-              placeholder="Search members..." 
+              placeholder={t('common.searchMembers')} 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 h-9 w-[250px] bg-card text-sm border-border"
@@ -106,7 +116,7 @@ export function TeamTab() {
           </div>
           {currentUser?.role === 'ADMIN' && (
             <Button className="h-9 text-sm gap-1" onClick={() => setInviteModalOpen(true)}>
-              <Plus className="w-4 h-4" /> Invite Member
+              <Plus className="w-4 h-4" /> {t('common.inviteMember')}
             </Button>
           )}
         </div>
@@ -130,8 +140,7 @@ export function TeamTab() {
         ) : filteredUsers.length === 0 ? (
           <div className="col-span-full py-16 text-center text-muted-foreground">
             <Users className="w-16 h-16 mx-auto mb-4 opacity-10" />
-            <p className="text-lg font-medium text-foreground">No members found</p>
-            <p className="text-sm">Try adjusting your search query</p>
+            <p className="text-lg font-medium text-foreground">{t('common.noMembersFound')}</p>
           </div>
         ) : (
           filteredUsers.map(user => (
@@ -139,12 +148,12 @@ export function TeamTab() {
               
               {!user.isActive && (
                 <div className="absolute top-3 left-3">
-                  <Badge variant="destructive" className="text-[10px]">INACTIVE</Badge>
+                  <Badge variant="destructive" className="text-[10px]">{t('common.inactive')}</Badge>
                 </div>
               )}
 
               {user.role === 'ADMIN' && (
-                <div className="absolute top-3 right-3 text-orange-500" title="Workspace Admin">
+                <div className="absolute top-3 right-3 text-orange-500" title={t('common.workspaceAdmin')}>
                   <ShieldAlert className="w-5 h-5" />
                 </div>
               )}
@@ -155,10 +164,10 @@ export function TeamTab() {
                   {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
-              <h3 className="font-semibold text-foreground line-clamp-1 w-full">{user.name} {currentUser?.id === user.id && <span className="text-primary text-xs">(You)</span>}</h3>
+              <h3 className="font-semibold text-foreground line-clamp-1 w-full">{user.name} {currentUser?.id === user.id && <span className="text-primary text-xs">{t('common.you')}</span>}</h3>
               <p className="text-sm text-muted-foreground mt-1 line-clamp-1 w-full flex items-center justify-center gap-1.5">
                 {user.role === 'ADMIN' ? <Shield className="w-3.5 h-3.5" /> : null}
-                {user.role.charAt(0) + user.role.slice(1).toLowerCase()}
+                {getRoleLabel(user.role)}
               </p>
               
               {/* Workload Stats */}
@@ -167,19 +176,19 @@ export function TeamTab() {
                   const uw = workload?.find((w: any) => w.user.id === user.id) || { todo: 0, inProgress: 0, review: 0, done: 0 };
                   return (
                     <>
-                      <div className="flex flex-col items-center flex-1" title="To Do">
+                      <div className="flex flex-col items-center flex-1" title={t('status.TODO')}>
                         <div className="w-2 h-2 rounded-full bg-muted-foreground/40 mb-1" />
                         <span className="text-xs font-bold text-foreground/80">{uw.todo}</span>
                       </div>
-                      <div className="flex flex-col items-center flex-1 border-l border-border" title="In Progress">
+                      <div className="flex flex-col items-center flex-1 border-l border-border" title={t('status.IN_PROGRESS')}>
                         <div className="w-2 h-2 rounded-full bg-blue-500 mb-1" />
                         <span className="text-xs font-bold text-foreground/80">{uw.inProgress}</span>
                       </div>
-                      <div className="flex flex-col items-center flex-1 border-l border-border" title="Review">
+                      <div className="flex flex-col items-center flex-1 border-l border-border" title={t('status.REVIEW')}>
                         <div className="w-2 h-2 rounded-full bg-yellow-500 mb-1" />
                         <span className="text-xs font-bold text-foreground/80">{uw.review}</span>
                       </div>
-                      <div className="flex flex-col items-center flex-1 border-l border-border" title="Done">
+                      <div className="flex flex-col items-center flex-1 border-l border-border" title={t('status.DONE')}>
                         <div className="w-2 h-2 rounded-full bg-emerald-500 mb-1" />
                         <span className="text-xs font-bold text-foreground/80">{uw.done}</span>
                       </div>
@@ -191,7 +200,7 @@ export function TeamTab() {
               <div className="mt-4 pt-4 border-t border-border/50 w-full flex justify-center gap-2">
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 text-xs flex-1 h-8" asChild>
                   <a href={`mailto:${user.email}`}>
-                    <Mail className="w-3.5 h-3.5" /> Email
+                    <Mail className="w-3.5 h-3.5" /> {t('common.email')}
                   </a>
                 </Button>
                 
@@ -199,35 +208,35 @@ export function TeamTab() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground hover:bg-muted flex-1">
-                        Manage
+                        {t('common.manage')}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       {!user.isActive ? (
                         <DropdownMenuItem className="text-xs text-emerald-500 focus:text-emerald-600 focus:bg-emerald-500/10 cursor-pointer" onClick={() => reactivateUser.mutate(user.id)}>
-                          <Shield className="w-3.5 h-3.5 mr-2" /> Reactivate
+                          <Shield className="w-3.5 h-3.5 mr-2" /> {t('common.reactivate')}
                         </DropdownMenuItem>
                       ) : (
                         <>
-                          <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Change Role</div>
+                          <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t('common.changeRole')}</div>
                           <DropdownMenuItem className="text-xs cursor-pointer" onClick={() => changeRole.mutate({ id: user.id, role: 'ADMIN' })}>
-                            <ShieldAlert className="w-3.5 h-3.5 mr-2" /> Make Admin
+                            <ShieldAlert className="w-3.5 h-3.5 mr-2" /> {t('common.makeAdmin')}
                           </DropdownMenuItem>
                           <DropdownMenuItem className="text-xs cursor-pointer" onClick={() => changeRole.mutate({ id: user.id, role: 'MANAGER' })}>
-                            <Users className="w-3.5 h-3.5 mr-2" /> Make Manager
+                            <Users className="w-3.5 h-3.5 mr-2" /> {t('common.makeManager')}
                           </DropdownMenuItem>
                           <DropdownMenuItem className="text-xs cursor-pointer" onClick={() => changeRole.mutate({ id: user.id, role: 'MEMBER' })}>
-                            <Users className="w-3.5 h-3.5 mr-2" /> Make Member
+                            <Users className="w-3.5 h-3.5 mr-2" /> {t('common.makeMember')}
                           </DropdownMenuItem>
                           
                           <div className="h-px bg-border my-1" />
                           
                           <DropdownMenuItem className="text-xs text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer" onClick={() => {
-                            if(confirm(`Are you sure you want to deactivate ${user.name}? They will lose access to the workspace.`)) {
+                            if(confirm(t('common.confirmDeactivate', { name: user.name }))) {
                               deactivateUser.mutate(user.id);
                             }
                           }}>
-                            <Ban className="w-3.5 h-3.5 mr-2" /> Deactivate
+                            <Ban className="w-3.5 h-3.5 mr-2" /> {t('common.deactivate')}
                           </DropdownMenuItem>
                         </>
                       )}

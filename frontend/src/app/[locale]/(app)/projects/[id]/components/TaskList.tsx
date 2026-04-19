@@ -16,14 +16,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   MessageSquare, Paperclip, Plus, ChevronRight, ChevronDown as ChevronDownIcon,
-  Calendar, User, Flag, Check, Minus, ClipboardList
+  Check, ClipboardList
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { GroupByField, groupTasks } from '@/components/tasks/TaskFilterBar';
+import { GroupByField } from '@/components/tasks/TaskFilterBar';
+import { groupTasks } from '@/lib/tasks';
 import { EmptyState } from '@/components/ui/empty-state';
+import { useTranslations } from 'next-intl';
 
 // ─── Inline editable cell wrappers ───────────────────────────────────────────
 function InlineStatusPicker({ task, onUpdate }: { task: any; onUpdate: (id: string, d: any) => void }) {
+  const t = useTranslations();
   const conf = STATUS_CONFIG[task.status as keyof typeof STATUS_CONFIG];
   return (
     <DropdownMenu>
@@ -33,7 +36,7 @@ function InlineStatusPicker({ task, onUpdate }: { task: any; onUpdate: (id: stri
           className="flex items-center gap-1.5 px-2 py-0.5 rounded hover:bg-muted transition-colors text-left w-full"
         >
           <span className={cn('w-2 h-2 rounded-full flex-shrink-0', conf?.dotColor)} />
-          <span className="text-xs text-foreground/80 truncate">{conf?.label}</span>
+          <span className="text-xs text-foreground/80 truncate">{t(`status.${task.status}`)}</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-40 p-1" onClick={(e) => e.stopPropagation()}>
@@ -44,7 +47,7 @@ function InlineStatusPicker({ task, onUpdate }: { task: any; onUpdate: (id: stri
             onClick={() => onUpdate(task.id, { status: key })}
           >
             <span className={cn('w-2 h-2 rounded-full', val.dotColor)} />
-            {val.label}
+            {t(`status.${key}`)}
             {task.status === key && <Check className="w-3.5 h-3.5 ml-auto text-primary" />}
           </DropdownMenuItem>
         ))}
@@ -54,6 +57,7 @@ function InlineStatusPicker({ task, onUpdate }: { task: any; onUpdate: (id: stri
 }
 
 function InlinePriorityPicker({ task, onUpdate }: { task: any; onUpdate: (id: string, d: any) => void }) {
+  const t = useTranslations();
   const conf = PRIORITY_CONFIG[task.priority as keyof typeof PRIORITY_CONFIG];
 
   return (
@@ -64,7 +68,7 @@ function InlinePriorityPicker({ task, onUpdate }: { task: any; onUpdate: (id: st
           className="flex items-center gap-1.5 px-2 py-0.5 rounded hover:bg-muted transition-colors text-left w-full"
         >
           <span className={cn('w-2 h-2 rounded-full flex-shrink-0', conf?.dotColor)} />
-          <span className="text-xs text-foreground/80 truncate">{conf?.label}</span>
+          <span className="text-xs text-foreground/80 truncate">{t(`priority.${task.priority}`)}</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-36 p-1" onClick={(e) => e.stopPropagation()}>
@@ -75,7 +79,7 @@ function InlinePriorityPicker({ task, onUpdate }: { task: any; onUpdate: (id: st
             onClick={() => onUpdate(task.id, { priority: key })}
           >
             <span className={cn('w-2 h-2 rounded-full', val.dotColor)} />
-            {val.label}
+            {t(`priority.${key}`)}
             {task.priority === key && <Check className="w-3.5 h-3.5 ml-auto text-primary" />}
           </DropdownMenuItem>
         ))}
@@ -87,6 +91,7 @@ function InlinePriorityPicker({ task, onUpdate }: { task: any; onUpdate: (id: st
 function InlineAssigneePicker({
   task, projectId, onUpdate,
 }: { task: any; projectId: string; onUpdate: (id: string, d: any) => void }) {
+  const t = useTranslations();
   const { data: members } = useQuery({
     queryKey: ['project-members', projectId],
     queryFn: () => api.get<any[]>(`/api/projects/${projectId}/members`),
@@ -111,7 +116,7 @@ function InlineAssigneePicker({
               <span className="text-xs text-foreground/80 truncate">{task.assignee.name.split(' ')[0]}</span>
             </>
           ) : (
-            <span className="text-xs text-muted-foreground/60 italic">Unassigned</span>
+            <span className="text-xs text-muted-foreground/60 italic">{t('projects.unassigned')}</span>
           )}
         </button>
       </DropdownMenuTrigger>
@@ -120,7 +125,7 @@ function InlineAssigneePicker({
           className="text-xs cursor-pointer text-muted-foreground/60 italic"
           onClick={() => onUpdate(task.id, { assigneeId: null })}
         >
-          Unassigned
+          {t('projects.unassigned')}
         </DropdownMenuItem>
         {(members || []).map((m: any) => (
           <DropdownMenuItem
@@ -165,6 +170,7 @@ function TaskRow({
   customFields?: any[];
   onUpdateCustomField?: (taskId: string, fieldId: string, value: any) => void;
 }) {
+  const t = useTranslations();
   const openCreateTask = useUIStore((s) => s.openCreateTask);
   const [expanded, setExpanded] = useState(true);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -175,12 +181,6 @@ function TaskRow({
   const isDone = task.status === 'DONE';
 
   useEffect(() => { setTitleVal(task.title); }, [task.title]);
-
-  const startEdit = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setEditingTitle(true);
-    setTimeout(() => inputRef.current?.select(), 30);
-  };
 
   const commitTitle = () => {
     setEditingTitle(false);
@@ -252,7 +252,7 @@ function TaskRow({
                   'flex-1 text-sm font-medium truncate min-w-0 group-hover/row:text-primary transition-colors',
                   isDone ? 'line-through text-muted-foreground/40' : 'text-foreground',
                 )}
-                onDoubleClick={startEdit}
+                onDoubleClick={(e) => { e.stopPropagation(); setEditingTitle(true); setTimeout(() => inputRef.current?.select(), 30); }}
               >
                 {task.title}
               </span>
@@ -273,7 +273,7 @@ function TaskRow({
               <button
                 onClick={(e) => { e.stopPropagation(); openCreateTask(projectId, task.status); }}
                 className="text-muted-foreground/40 hover:text-primary transition-colors"
-                title="Add subtask"
+                title={t('tasks.add')}
               >
                 <Plus className="w-3.5 h-3.5" />
               </button>
@@ -389,6 +389,7 @@ function GroupHeader({
   onToggle: () => void;
   customFieldCount?: number;
 }) {
+  const t = useTranslations();
   const openCreateTask = useUIStore((s) => s.openCreateTask);
 
   return (
@@ -409,7 +410,7 @@ function GroupHeader({
             onClick={() => openCreateTask(projectId, status)}
             className="ml-2 opacity-0 group-hover/group:opacity-100 flex items-center gap-1 text-[11px] text-muted-foreground/60 hover:text-primary transition-all"
           >
-            <Plus className="w-3.5 h-3.5" /> Add
+            <Plus className="w-3.5 h-3.5" /> {t('common.add')}
           </button>
         </div>
       </td>
@@ -427,6 +428,7 @@ export function TaskList({
   projectId: string;
   groupBy?: GroupByField;
 }) {
+  const t = useTranslations();
   const queryCacheKey = ['project-custom-fields', projectId];
   const { data: customFields } = useQuery({
     queryKey: queryCacheKey,
@@ -476,7 +478,7 @@ export function TaskList({
     setSelectedIds((prev) => { const n = new Set(prev); checked ? n.add(id) : n.delete(id); return n; });
   };
 
-  const groups = groupTasks(tasks, groupBy);
+  const groups = groupTasks(tasks, groupBy, t);
   const allSelected = tasks.length > 0 && tasks.every((t) => selectedIds.has(t.id));
   const someSelected = selectedIds.size > 0;
 
@@ -490,9 +492,9 @@ export function TaskList({
     return (
       <EmptyState
         icon={ClipboardList}
-        title="No tasks yet"
-        description="Get started by adding a task. You can also switch to Board or Table view."
-        actionLabel="Add Task"
+        title={t('common.noTasksSearch')}
+        description={t('projects.noProjectsDesc')}
+        actionLabel={t('tasks.add')}
         onAction={() => openCreateTask(projectId)}
         className="h-full bg-background"
       />
@@ -504,24 +506,24 @@ export function TaskList({
       {/* Bulk action bar */}
       {someSelected && (
         <div className="flex items-center gap-2 px-4 py-2 bg-primary/5 border-b border-primary/10 sticky top-0 z-20 animate-in slide-in-from-top-1">
-          <span className="text-xs font-semibold text-primary">{selectedIds.size} selected</span>
+          <span className="text-xs font-semibold text-primary">{selectedIds.size} {t('common.taskCount', { count: selectedIds.size })}</span>
           <div className="w-px h-4 bg-primary/20" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="h-7 text-xs border-primary/20 text-primary">
-                Set Status <ChevronDownIcon className="w-3 h-3 ml-1" />
+                {t('common.status')} <ChevronDownIcon className="w-3 h-3 ml-1" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="p-1 w-40">
               {Object.entries(STATUS_CONFIG).map(([k, v]) => (
                 <DropdownMenuItem key={k} className="text-xs cursor-pointer gap-2" onClick={() => bulkUpdateStatus(k)}>
-                  <span className={cn('w-2 h-2 rounded-full', v.dotColor)} /> {v.label}
+                  <span className={cn('w-2 h-2 rounded-full', v.dotColor)} /> {t(`status.${k}`)}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
           <button className="ml-auto text-xs text-muted-foreground hover:text-foreground" onClick={() => setSelectedIds(new Set())}>
-            Clear
+            {t('common.clear')}
           </button>
         </div>
       )}
@@ -539,19 +541,19 @@ export function TaskList({
               />
             </th>
             <th className="w-auto text-left py-2 pl-3 pr-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-              Task name
+              {t('tasks.title')}
             </th>
             <th className="w-[120px] text-left py-2 px-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-              Status
+              {t('tasks.status')}
             </th>
             <th className="w-[100px] text-left py-2 px-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-              Priority
+              {t('tasks.priority')}
             </th>
             <th className="w-[140px] text-left py-2 px-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-              Assignee
+              {t('tasks.assignee')}
             </th>
             <th className="w-[110px] text-left py-2 px-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-              Due date
+              {t('tasks.dueDate')}
             </th>
             {(customFields || []).map((f: any) => (
               <th key={f.id} className="w-[120px] text-left py-2 px-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide truncate" title={f.name}>
@@ -601,7 +603,7 @@ export function TaskList({
                         onClick={() => openCreateTask(projectId, group.key !== 'all' ? group.key : undefined)}
                         className="flex items-center gap-1.5 text-xs text-muted-foreground/60 hover:text-primary transition-colors"
                       >
-                        <Plus className="w-3 h-3" /> Add task
+                        <Plus className="w-3 h-3" /> {t('tasks.add')}
                       </button>
                     </td>
                   </tr>
@@ -614,8 +616,8 @@ export function TaskList({
 
       {/* Footer count */}
       <div className="px-4 py-2 text-[11px] text-muted-foreground/60 border-t border-border/50">
-        {tasks.length} task{tasks.length !== 1 ? 's' : ''}
-        {someSelected && ` · ${selectedIds.size} selected`}
+        {tasks.length} {t('common.taskCount', { count: tasks.length })}
+        {someSelected && ` · ${selectedIds.size} ${t('common.taskCount', { count: selectedIds.size })}`}
       </div>
       </div>
     </div>

@@ -1,3 +1,5 @@
+'use client';
+
 import { useUIStore } from '@/stores/uiStore';
 import { STATUS_CONFIG, PRIORITY_CONFIG, getInitials, cn, formatDate, isOverdue } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,9 +23,11 @@ import {
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useState, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 
 // Draggable Task Card
 function SortableTaskCard({ task }: { task: any }) {
+  const t = useTranslations();
   const setSelectedTaskId = useUIStore((s) => s.setSelectedTaskId);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
@@ -50,7 +54,7 @@ function SortableTaskCard({ task }: { task: any }) {
     >
       <div className="flex gap-2">
         <Badge variant="outline" className={cn('text-[9px] uppercase h-4 px-1.5 border-none', priorityConf?.className)}>
-          {priorityConf?.label.charAt(0)}
+          {t(`priority.${task.priority}`).charAt(0)}
         </Badge>
         <span className="text-xs font-semibold text-foreground/90 leading-tight">
           {task.title}
@@ -131,6 +135,7 @@ function BoardColumn({ status, label, dotColor, tasks, projectId }: any) {
 }
 
 export function TaskBoard({ tasks, projectId }: { tasks: any[]; projectId: string }) {
+  const t = useTranslations();
   const queryClient = useQueryClient();
   const [activeTask, setActiveTask] = useState<any | null>(null);
 
@@ -152,7 +157,8 @@ export function TaskBoard({ tasks, projectId }: { tasks: any[]; projectId: strin
 
   const columns = Object.keys(STATUS_CONFIG).map((status) => ({
     status,
-    ...STATUS_CONFIG[status as keyof typeof STATUS_CONFIG],
+    dotColor: STATUS_CONFIG[status as keyof typeof STATUS_CONFIG].dotColor,
+    label: t(`status.${status}`),
     tasks: localTasks.filter((t) => t.status === status).sort((a, b) => a.position - b.position),
   }));
 
@@ -167,8 +173,7 @@ export function TaskBoard({ tasks, projectId }: { tasks: any[]; projectId: strin
   };
 
   const handleDragOver = (e: any) => {
-    // Only handle cross container movements (advanced logic omitted for brevity in alpha)
-    // Real implementation requires robust state tracking. Let's just do a simple drop logic.
+    // Only handle cross container movements
   };
 
   const handleDragEnd = (e: DragEndEvent) => {
@@ -211,7 +216,6 @@ export function TaskBoard({ tasks, projectId }: { tasks: any[]; projectId: strin
       // Update local state optimistic
       const newTasks = [...localTasks];
       newTasks[activeTaskIndex] = { ...activeObj, status: newStatus };
-      // Position logic: simplify by sending same position for now (real DnD needs precise array shifts)
       setLocalTasks(newTasks);
 
       updateTask.mutate({ id: activeObj.id, status: newStatus, position: overTask.position });

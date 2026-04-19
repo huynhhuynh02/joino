@@ -1,9 +1,9 @@
 # 🚀 Joino — Wrike Clone Implementation Plan
 
-> **Phiên bản v1.0** | Stack: Next.js 15 · Node.js Express · PostgreSQL · Docker  
+> **Phiên bản v1.1** | Stack: Next.js 15 · Node.js Express · PostgreSQL · Docker  
 > **Màu chủ đạo:** Xanh lá cây (`#00A86B`) & Trắng  
 > **UI Library:** shadcn/ui  
-> **Cập nhật:** 2026-04-11 — Bổ sung đầy đủ chức năng Wrike
+> **Cập nhật:** 2026-04-19 — Thêm hỗ trợ đa ngôn ngữ (VI, EN, JP)
 
 ---
 
@@ -20,8 +20,9 @@
 - ✅ Comment & Activity log trên tasks
 - ✅ File attachment (upload)
 - ✅ Google OAuth login
-- ❌ SaaS/Multi-tenant (chưa cần)
-- ❌ AI features (v2)
+- ✅ AI features (Task generator, Summarizer, Reports)
+- 🟡 Internationalization (i18n): Tiếng Việt, English, 日本語
+- ❌ SaaS/Multi-tenant (v2)
 - ❌ Integrations bên ngoài (v2)
 
 ---
@@ -75,17 +76,20 @@ joino/
 │   │   ├── routes/
 │   │   │   ├── auth.routes.ts      ✅
 │   │   │   ├── users.routes.ts     ✅
-│   │   │   ├── workspaces.routes.ts ❌ MISSING
+│   │   │   ├── organizations.routes.ts ✅ (Workspaces)
 │   │   │   ├── projects.routes.ts  ✅
 │   │   │   ├── tasks.routes.ts     ✅
 │   │   │   ├── comments.routes.ts  ✅
 │   │   │   ├── attachments.routes.ts ✅
 │   │   │   ├── notifications.routes.ts ✅
-│   │   │   ├── labels.routes.ts    ❌ MISSING
-│   │   │   ├── folders.routes.ts   ❌ MISSING
-│   │   │   ├── timelog.routes.ts   ❌ MISSING
-│   │   │   ├── dashboard.routes.ts ❌ MISSING
-│   │   │   └── search.routes.ts    ❌ MISSING
+│   │   │   ├── labels.routes.ts    ✅
+│   │   │   ├── folders.routes.ts   ✅
+│   │   │   ├── custom-fields.routes.ts ✅
+│   │   │   ├── dependencies.routes.ts ✅
+│   │   │   ├── ai.routes.ts        ✅
+│   │   │   ├── reports.routes.ts   ✅
+│   │   │   ├── search.routes.ts    ✅
+│   │   │   └── settings.routes.ts  ✅
 │   │   ├── controllers/            # Route handlers
 │   │   ├── services/               # Business logic
 │   │   ├── middlewares/
@@ -126,15 +130,16 @@ joino/
 │       │   │   ├── projects/
 │       │   │   │   ├── page.tsx       ✅
 │       │   │   │   └── [id]/
-│       │   │   │       ├── page.tsx        ✅ List+Board+Gantt
-│       │   │   │       └── table/page.tsx  ❌ MISSING (Table view)
-│       │   │   ├── folders/           ❌ MISSING
-│       │   │   ├── reports/           ❌ MISSING
-│       │   │   ├── team/page.tsx      ✅ (cần nâng cấp)
+│       │   │   │       ├── page.tsx        ✅ List+Board+Gantt+Table
+│       │   │   │       └── components/     ✅ TaskList, TaskBoard, TaskGantt, TaskTable
+│       │   │   ├── folders/           ✅
+│       │   │   ├── reports/           ✅
+│       │   │   ├── team/page.tsx      ✅
 │       │   │   ├── settings/
-│       │   │   │   ├── profile/page.tsx   ❌ MISSING
-│       │   │   │   ├── workspace/page.tsx ❌ MISSING
-│       │   │   │   └── notifications/page.tsx ❌ MISSING
+│       │   │   │   ├── page.tsx           ✅
+│       │   │   │   ├── profile/page.tsx   ✅
+│       │   │   │   ├── workspace/page.tsx ✅
+│       │   │   │   └── notifications/page.tsx ✅
 │       ├── components/
 │       │   ├── ui/                 ✅ shadcn components
 │       │   ├── layout/
@@ -156,19 +161,19 @@ joino/
 │       │   │   ├── TaskFilters.tsx     ❌ MISSING
 │       │   │   └── SubtaskList.tsx     ❌ MISSING (inline)
 │       │   ├── dashboard/
-│       │   │   ├── StatCard.tsx        ❌ MISSING
-│       │   │   ├── RecentActivity.tsx  ❌ MISSING
-│       │   │   └── MyTasksWidget.tsx   ❌ MISSING
+│       │   │   ├── StatCard.tsx        ✅
+│       │   │   ├── RecentActivity.tsx  ✅
+│       │   │   └── MyTasksWidget.tsx   ✅
 │       │   ├── comments/
 │       │   │   └── CommentThread.tsx   ❌ MISSING (standalone)
 │       │   └── common/
-│       │       ├── Avatar.tsx          ❌ MISSING
-│       │       ├── UserPicker.tsx      ❌ MISSING
-│       │       ├── DatePicker.tsx      ❌ MISSING
-│       │       ├── PriorityBadge.tsx   ❌ MISSING
-│       │       ├── StatusBadge.tsx     ❌ MISSING
-│       │       ├── LabelBadge.tsx      ❌ MISSING
-│       │       └── SearchBar.tsx       ❌ MISSING
+│       │       ├── Avatar.tsx          ✅
+│       │       ├── UserPicker.tsx      ✅
+│       │       ├── DatePicker.tsx      ✅
+│       │       ├── PriorityBadge.tsx   ✅
+│       │       ├── StatusBadge.tsx     ✅
+│       │       ├── LabelBadge.tsx      ✅
+│       │       └── SearchBar.tsx       ✅
 │       ├── lib/
 │       │   ├── api.ts              ✅ API client (axios)
 │       │   ├── auth.ts             ❌ MISSING
@@ -192,6 +197,7 @@ joino/
 
 ### Current Schema (✅ Implemented):
 - `User` — auth, profile, relations
+- `Organization` — workspaces
 - `Project` — name, color, status, dates
 - `ProjectMember` — userId + projectId + role
 - `Task` — title, status, priority, dates, subtasks via parentId
@@ -199,163 +205,13 @@ joino/
 - `Attachment` — file uploads
 - `Activity` — task activity log
 - `Notification` — in-app notifications
+- `Label` — task labels
+- `Folder` — task organization
+- `TimeLog` — time tracking
+- `TaskDependency` — task relations
+- `CustomField` — dynamic fields
 
-### ❌ MISSING Schema Extensions:
-
-```prisma
-// ─── Labels / Tags ────────────────────────────────────────
-model Label {
-  id        String   @id @default(cuid())
-  name      String
-  color     String
-  projectId String
-  createdAt DateTime @default(now())
-
-  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  tasks     TaskLabel[]
-
-  @@map("labels")
-}
-
-model TaskLabel {
-  taskId  String
-  labelId String
-
-  task    Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  label   Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
-
-  @@id([taskId, labelId])
-  @@map("task_labels")
-}
-
-// ─── Folders (Wrike Space/Folder hierarchy) ──────────────
-model Folder {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  color       String   @default("#6B7280")
-  projectId   String
-  parentId    String?   // Self-relation for nested folders
-  position    Int       @default(0)
-  createdAt   DateTime @default(now())
-
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  parent      Folder?  @relation("FolderParent", fields: [parentId], references: [id])
-  children    Folder[] @relation("FolderParent")
-  tasks       Task[]   @relation("FolderTasks")
-
-  @@map("folders")
-}
-
-// ─── Time Tracking ────────────────────────────────────────
-model TimeLog {
-  id        String   @id @default(cuid())
-  taskId    String
-  userId    String
-  hours     Float
-  note      String?
-  loggedAt  DateTime @default(now())
-
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id])
-
-  @@index([taskId])
-  @@index([userId])
-  @@map("time_logs")
-}
-
-// ─── Task Dependencies ────────────────────────────────────
-model TaskDependency {
-  id             String         @id @default(cuid())
-  predecessorId  String
-  successorId    String
-  type           DependencyType @default(FINISH_TO_START)
-
-  predecessor    Task @relation("Predecessors", fields: [predecessorId], references: [id], onDelete: Cascade)
-  successor      Task @relation("Successors", fields: [successorId], references: [id], onDelete: Cascade)
-
-  @@unique([predecessorId, successorId])
-  @@map("task_dependencies")
-}
-
-// ─── Custom Fields ────────────────────────────────────────
-model CustomField {
-  id        String          @id @default(cuid())
-  name      String
-  type      CustomFieldType // TEXT, NUMBER, DATE, DROPDOWN, CHECKBOX
-  projectId String
-  options   Json?           // For DROPDOWN: ["option1", "option2"]
-  createdAt DateTime        @default(now())
-
-  project   Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  values    CustomFieldValue[]
-
-  @@map("custom_fields")
-}
-
-model CustomFieldValue {
-  id            String      @id @default(cuid())
-  customFieldId String
-  taskId        String
-  value         String?
-
-  customField   CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
-  task          Task        @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  @@unique([customFieldId, taskId])
-  @@map("custom_field_values")
-}
-
-// ─── Favorites / Pinned items ─────────────────────────────
-model Favorite {
-  id         String   @id @default(cuid())
-  userId     String
-  entityType String   // "project" | "task" | "folder"
-  entityId   String
-  createdAt  DateTime @default(now())
-
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, entityType, entityId])
-  @@map("favorites")
-}
-
-// ─── New Enums ────────────────────────────────────────────
-enum DependencyType {
-  FINISH_TO_START
-  START_TO_START
-  FINISH_TO_FINISH
-  START_TO_FINISH
-}
-
-enum CustomFieldType {
-  TEXT
-  NUMBER
-  DATE
-  DROPDOWN
-  CHECKBOX
-  URL
-}
-
-// ─── Extend existing models ───────────────────────────────
-// Task: add
-//   folderId    String?
-//   labels      TaskLabel[]
-//   timeLogs    TimeLog[]
-//   dependencies TaskDependency[] @relation("Predecessors")
-//   dependents   TaskDependency[] @relation("Successors")
-//   customValues CustomFieldValue[]
-//   estimatedHours Float?
-//
-// Project: add
-//   folders      Folder[]
-//   labels       Label[]
-//   customFields CustomField[]
-//   favorites    Favorite[]
-//
-// User: add
-//   timeLogs     TimeLog[]
-//   favorites    Favorite[]
+// ─── Schema Extensions: ✅ All Implemented
 ```
 
 ---
@@ -409,7 +265,9 @@ enum CustomFieldType {
 | GET | `/api/search/timelogs/my` | ✅ Time logs của task |
 | POST | `/api/search/timelogs/task/:taskId` | ✅ Log thời gian |
 | POST | `/api/tasks/:id/duplicate` | ✅ Nhân bản task |
-| PUT | `/api/tasks/:id/dependencies` | ❌ Thêm task dependency |
+| PUT | `/api/tasks/:id/dependencies` | ✅ Thêm task dependency |
+| GET | `/api/dependencies/task/:taskId` | ✅ Lấy dependencies |
+| DELETE | `/api/dependencies/:id` | ✅ Xóa dependency |
 
 ### Comments & Files ✅
 | Method | Endpoint | Description |
@@ -429,13 +287,14 @@ enum CustomFieldType {
 | PUT | `/api/notifications/read-all` | Đánh dấu tất cả đã đọc |
 | DELETE | `/api/notifications/:id` | ❌ Xóa notification |
 
-### Folders ❌ MISSING
+### Folders ✅
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/projects/:id/folders` | Danh sách folders |
-| POST | `/api/projects/:id/folders` | Tạo folder |
+| GET | `/api/folders/project/:projectId` | Danh sách folders (tree) |
+| POST | `/api/folders/project/:projectId` | Tạo folder |
 | PUT | `/api/folders/:id` | Cập nhật folder |
 | DELETE | `/api/folders/:id` | Xóa folder |
+| GET | `/api/folders/:id/tasks` | Lấy tasks trong folder |
 
 ### Time Tracking ✅
 | Method | Endpoint | Description |
@@ -444,36 +303,44 @@ enum CustomFieldType {
 | POST | `/api/search/timelogs/task/:taskId` | ✅ Log giờ |
 | PUT | `/api/timelogs/:id` | ❌ Sửa log |
 | DELETE | `/api/search/timelogs/:id` | ✅ Xóa log |
-| GET | `/api/projects/:id/timelogs` | ❌ Logs theo project |
+| GET | `/api/reports/project/:id/timelogs` | ✅ Logs theo project |
 
-### Custom Fields ❌ MISSING
+### Custom Fields ✅
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/projects/:id/custom-fields` | Danh sách custom fields |
-| POST | `/api/projects/:id/custom-fields` | Tạo custom field |
+| GET | `/api/custom-fields/project/:id` | Danh sách custom fields |
+| POST | `/api/custom-fields/project/:id` | Tạo custom field |
 | PUT | `/api/custom-fields/:id` | Sửa custom field |
 | DELETE | `/api/custom-fields/:id` | Xóa custom field |
-| PUT | `/api/tasks/:id/custom-fields` | Cập nhật giá trị |
+| PUT | `/api/tasks/:id/custom-fields` | ✅ Cập nhật giá trị |
 
 ### Search ✅
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/search?q=` | ✅ Search projects, tasks |
 
-### Dashboard/Reports ❌ MISSING
+### Dashboard/Reports ✅
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/dashboard/overview` | Tổng quan dashboard |
+| GET | `/api/reports/dashboard` | Tổng quan dashboard |
 | GET | `/api/reports/workload` | Báo cáo workload |
-| GET | `/api/reports/progress` | Tiến trình project |
+| GET | `/api/reports/project/:id/progress` | Tiến trình project |
 
-### Users ✅ (cần bổ sung)
+### Users ✅
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/users` | Danh sách users |
-| GET | `/api/users/:id` | ❌ Chi tiết user |
-| PUT | `/api/users/:id` | ❌ Cập nhật user (admin) |
-| PUT | `/api/users/me/avatar` | ❌ Upload avatar |
+| GET | `/api/users/:id` | ✅ Chi tiết user |
+| PUT | `/api/users/:id/role` | ✅ Cập nhật role (admin) |
+| POST | `/api/users/profile/avatar` | ✅ Upload avatar |
+| PUT | `/api/users/profile/update` | ✅ Update profile settings |
+### AI Features ✅
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/ai/generate-task` | ✅ Generate task from prompt |
+| POST | `/api/ai/summarize-task/:taskId` | ✅ Summarize comments |
+| GET | `/api/ai/report/:projectId` | ✅ Daily standup report |
+| GET | `/api/ai/risks/:projectId` | ✅ Risk analysis report |
 
 ---
 
@@ -509,14 +376,14 @@ enum CustomFieldType {
 
 ### Key Pages & Components:
 
-#### 1. **Sidebar Navigation** ✅ (cần nâng cấp)
+#### 1. **Sidebar Navigation** ✅
 - Logo Joino (xanh lá)  
 - Quick access: Home, Inbox, My Tasks, Dashboards
 - ❌ Favorites section (pin projects/tasks)
 - ✅ Search bar trong sidebar
 - Projects list (collapsible) ✅
-- ❌ Nested folders trong project
-- ❌ Keyboard shortcut hints
+- ✅ Nested folders trong project
+- ✅ Keyboard shortcut hints
 - User avatar + settings ở dưới ✅
 
 #### 2. **Dashboard** ✅
@@ -557,15 +424,15 @@ enum CustomFieldType {
 - ❌ Collapse column
 - ❌ Quick edit on card hover
 
-#### 6. **Gantt View** ✅ (cần nâng cấp)
+#### 6. **Gantt View** ✅
 - Left panel: Task list ✅
 - Right panel: Timeline bars ✅
-- ❌ Task dependencies arrows
-- ❌ Drag to resize bar (change duration)
-- ❌ Drag bar to move dates
+- ✅ Task dependencies arrows
+- ✅ Drag to resize bar (change duration)
+- ✅ Drag bar to move dates
 - Date range: Week / Month / Quarter ✅
-- ❌ Today line indicator
-- ❌ Critical path highlight
+- ✅ Today line indicator
+- ✅ Critical path highlight
 
 #### 7. **Table View** ✅
 - Spreadsheet-like (Wrike-like Table) ✅
@@ -588,13 +455,14 @@ enum CustomFieldType {
 - Labels / Tags ✅
 - Time tracking (log time button) ✅
 - ✅ Custom fields display (dynamic logic)
-- ❌ Task dependencies panel (Phase 4C)
+- ✅ Task dependencies panel
 - Estimated hours vs logged hours ✅
-- ❌ Followers (watchers) — notify on changes
+- ✅ Followers (watchers) — notify on changes
 - Copy task link button ✅
 - Duplicate task button ✅
 - ✅ Move to another project
 - ✅ Archive task / Delete task ✅
+- ✅ AI Magic: Generate content & Summarize
 
 #### 9. **My Tasks Page** ✅
 - Table view (spreadsheet-like) ✅
@@ -645,14 +513,14 @@ enum CustomFieldType {
 - ✅ Tasks completed over time (line chart)
 - ✅ Workload chart per member
 - ✅ Project progress bars (Dashboard & Project Header)
-- ✅ Overdue tasks report
+- ✅ Overdue tasks table
 - ✅ Time tracking summary ✅
 
-#### 15. **Folder Structure** ❌ MISSING (Wrike Spaces/Folders)
-- ❌ Tạo folder trong project
-- ❌ Nested folders
-- ❌ Move tasks vào folder
-- ❌ Folder header + view
+#### 15. **Folder Structure** ✅
+- ✅ Tạo folder trong project
+- ✅ Nested folders
+- ✅ Move tasks vào folder
+- ✅ Folder header + view
 
 ---
 
@@ -696,7 +564,8 @@ enum CustomFieldType {
   "cmdk": "^1.x",
   "react-dropzone": "^14.x",
   "react-virtualized-auto-sizer": "^1.x",
-  "react-window": "^1.x"
+  "react-window": "^1.x",
+  "framer-motion": "^11.x"
 }
 ```
 
@@ -828,7 +697,7 @@ volumes:
 - [x] Click assignee → user picker inline
 - [x] Click due date → date picker inline
 - [x] Click priority → dropdown inline
-- [ ] Keyboard navigation giữa các cells
+- [x] Keyboard navigation giữa các cells
 
 #### 3F. Bulk Actions ✅
 - [x] Checkbox column (select all / select row)
@@ -858,12 +727,12 @@ volumes:
 - [x] Frontend: Time logs list trong task detail
 - [x] Reports: Time summary per project/member
 
-#### 4C. Task Dependencies (Gantt)
-- [ ] DB migration: `TaskDependency` table
-- [ ] Backend: dependency CRUD
-- [ ] Frontend: Gantt arrows giữa dependent tasks
-- [ ] Frontend: Dependency picker trong task detail panel
-- [ ] Validation: no circular dependencies
+#### 4C. Task Dependencies (Gantt) ✅
+- [x] DB migration: `TaskDependency` table
+- [x] Backend: dependency CRUD
+- [x] Frontend: Gantt arrows giữa dependent tasks
+- [x] Frontend: Dependency picker trong task detail panel
+- [x] Validation: no circular dependencies
 
 #### 4D. Custom Fields ✅
 - [x] DB migration: `CustomField` + `CustomFieldValue`
@@ -873,12 +742,12 @@ volumes:
 - [x] Frontend: Custom fields hiển thị trong task detail
 - [x] Frontend: Custom fields như column trong Table view
 
-#### 4E. Folder Structure
-- [ ] DB migration: `Folder` table (self-relation)
-- [ ] Backend: Folders CRUD
-- [ ] Frontend: Sidebar nested folders dưới mỗi project
-- [ ] Frontend: Move task to folder
-- [ ] Frontend: Folder page view (tasks filtered by folder)
+#### 4E. Folder Structure ✅
+- [x] DB migration: `Folder` table (self-relation)
+- [x] Backend: Folders CRUD
+- [x] Frontend: Sidebar nested folders dưới mỗi project
+- [x] Frontend: Move task to folder
+- [x] Frontend: Folder page view (tasks filtered by folder)
 
 ### 🟢 Phase 5 — Settings & Polish
 
@@ -899,7 +768,7 @@ volumes:
 - [x] Archive / Delete project
 - [x] Manage labels
 - [x] Manage custom fields
-- [ ] Export tasks to CSV
+- [x] Export tasks to CSV
 
 #### 5D. Reports / Analytics (`/reports`) ✅
 - [x] Tasks completed over time (line chart - Recharts)
@@ -940,6 +809,16 @@ volumes:
 - [x] @ mention trong comments
 - [x] Confirmation dialogs cho delete actions
 
+#### 🟡 Phase 6 — Internationalization (i18n)
+- [ ] Install `next-intl` (Next.js 15 App Router support)
+- [ ] Configure `next.config.js` with i18n routing
+- [ ] Setup `middleware.ts` for locale redirection
+- [ ] Create `i18n/request.ts` for dynamic configuration
+- [ ] Create translation files: `vi.json` (Default), `en.json`, `ja.json`
+- [ ] Migrate hardcoded strings in Sidebar, TopBar, Dashboard, Task Views
+- [ ] Add `LanguageSwitcher.tsx` component in `TopBar`
+- [ ] Persistent locale preference (cookies + URL)
+
 ---
 
 ## 📊 Gap Analysis — So sánh với Wrike
@@ -965,9 +844,9 @@ volumes:
 | Email notifications (Welcome, Invite, Reset) | ✅ | ✅ | Done |
 | **Global search** | ✅ | ✅ | Done |
 | **Time tracking** | ✅ | ✅ | Done |
-| **Task dependencies** | ✅ | ❌ | Phase 4C |
+| **Task dependencies** | ✅ | ✅ | Done |
 | **Custom fields** | ✅ | ✅ | Done |
-| **Folder structure** | ✅ | ❌ | Phase 4E |
+| **Folder structure** | ✅ | ✅ | Done |
 | **Profile settings** | ✅ | ✅ | Done |
 | **Workspace settings** | ✅ | ✅ | Done |
 | **Project settings** | ✅ | ✅ | Done |
@@ -977,6 +856,7 @@ volumes:
 | Favorites/Pins | ✅ | ❌ | Phase 5H |
 | Keyboard shortcuts | ✅ | ✅ | Done |
 | Dark mode | ✅ | ✅ | Done |
+| **Internationalization (i18n)** | ✅ | 🟡 | Phase 6 |
 
 ---
 
@@ -984,12 +864,10 @@ volumes:
 
 ### Skills đã tạo:
 - ✅ `backend-api-skill.md` — Pattern tạo Express route + controller + service + Prisma
-
-### Skills cần tạo:
-- ❌ `frontend-component-skill.md` — Pattern tạo shadcn/ui component với green theme
-- ❌ `task-view-skill.md` — Pattern implement các view (List/Board/Gantt/Table)
-- ❌ `filter-groupby-skill.md` — Pattern implement filter & group by
-- ❌ `docker-service-skill.md` — Pattern add service vào docker-compose
+- ✅ `frontend-component-skill.md` — Pattern tạo shadcn/ui component với green theme
+- ✅ `task-view-skill.md` — Pattern implement các view (List/Board/Gantt/Table)
+- ✅ `filter-groupby-skill.md` — Pattern implement filter & group by
+- ✅ `ai-integration-skill.md` — Pattern sử dụng Gemini AI in backend
 
 ---
 

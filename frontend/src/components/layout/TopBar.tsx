@@ -31,6 +31,9 @@ import { useState, useEffect, useRef } from 'react';
 import { SettingsModal } from '@/components/user/SettingsModal';
 import { GlobalSearch } from '@/components/layout/GlobalSearch';
 
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from './LanguageSwitcher';
+
 interface Notification {
   id: string;
   type: string;
@@ -45,6 +48,7 @@ interface TopBarProps {
 }
 
 export function TopBar({ onSearch }: TopBarProps) {
+  const t = useTranslations();
   const user = useAuthStore((s) => s.user);
   const openCreateProject = useUIStore((s) => s.openCreateProject);
   const queryClient = useQueryClient();
@@ -69,8 +73,8 @@ export function TopBar({ onSearch }: TopBarProps) {
         const newUnread = notifData.filter(n => !n.read && !prevIdsRef.current.has(n.id));
         if (newUnread.length > 0) {
           toast({
-            title: `New Notification${newUnread.length > 1 ? 's' : ''}`,
-            description: newUnread[0].title + (newUnread.length > 1 ? ` and ${newUnread.length - 1} more` : ''),
+            title: newUnread.length > 1 ? t('common.newNotifications') : t('common.newNotification'),
+            description: newUnread[0].title + (newUnread.length > 1 ? ` ${t('common.andMore', { count: newUnread.length - 1 })}` : ''),
           });
         }
       }
@@ -114,7 +118,7 @@ export function TopBar({ onSearch }: TopBarProps) {
         >
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
           <div className="pl-9 pr-3 bg-muted/50 border border-border hover:border-primary/20 transition-colors h-9 text-sm rounded-md flex items-center justify-between text-muted-foreground w-full">
-            <span>Search tasks, projects...</span>
+            <span>{t('topbar.searchPlaceholder')}</span>
             <div className="flex gap-1 text-[10px] font-semibold opacity-60">
               <span className="bg-muted border border-border/50 px-1.5 py-0.5 rounded">Cmd</span>
               <span className="bg-muted border border-border/50 px-1.5 py-0.5 rounded">K</span>
@@ -124,6 +128,9 @@ export function TopBar({ onSearch }: TopBarProps) {
       </div>
 
       <div className="flex items-center gap-2 ml-auto">
+        {/* Language Switcher */}
+        <LanguageSwitcher />
+
         {/* Quick add */}
         <Button
           size="sm"
@@ -131,7 +138,7 @@ export function TopBar({ onSearch }: TopBarProps) {
           onClick={openCreateProject}
         >
           <Plus className="w-3.5 h-3.5" />
-          New
+          {t('common.add')}
         </Button>
 
         {/* Notifications */}
@@ -148,7 +155,7 @@ export function TopBar({ onSearch }: TopBarProps) {
           </PopoverTrigger>
           <PopoverContent align="end" className="w-80 p-0">
             <div className="flex items-center justify-between px-4 py-3 border-b">
-              <h3 className="font-semibold text-sm">Notifications</h3>
+              <h3 className="font-semibold text-sm">{t('topbar.notifications')}</h3>
               {unreadCount > 0 && (
                 <Button
                   variant="ghost"
@@ -156,14 +163,14 @@ export function TopBar({ onSearch }: TopBarProps) {
                   className="text-xs text-primary h-7"
                   onClick={() => markAllRead.mutate()}
                 >
-                  Mark all read
+                  {t('common.markAllRead')}
                 </Button>
               )}
             </div>
             <div className="max-h-80 overflow-y-auto divide-y divide-border">
               {!notifData?.length ? (
                 <p className="text-sm text-muted-foreground/40 text-center py-8">
-                  No notifications
+                  {t('common.noNotifications')}
                 </p>
               ) : (
                 notifData.map((n) => (
@@ -208,11 +215,11 @@ export function TopBar({ onSearch }: TopBarProps) {
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer text-sm" onClick={() => setSettingsOpen(true)}>
-                Profile Settings
+                {t('topbar.profile')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive cursor-pointer text-sm" onClick={handleLogout}>
-                Log out
+                {t('common.logout')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

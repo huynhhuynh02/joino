@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
-import { ChevronsUpDown, Check, Building2, PlusCircle } from 'lucide-react';
+import { ChevronsUpDown, Check, PlusCircle } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useTranslations } from 'next-intl';
 
 interface Organization {
   id: string;
@@ -23,6 +24,7 @@ interface Organization {
 }
 
 export function OrganizationSwitcher() {
+  const t = useTranslations();
   const { currentOrganizationId, setCurrentOrganizationId } = useAuthStore();
 
   const { data: orgs, isLoading } = useQuery({
@@ -59,7 +61,7 @@ export function OrganizationSwitcher() {
                 )}
               </div>
               <span className="text-sm font-medium text-white truncate text-left">
-                {activeOrg?.name || 'Select Workspace'}
+                {activeOrg?.name || t('common.selectWorkspace')}
               </span>
             </div>
             <ChevronsUpDown className="w-3.5 h-3.5 text-gray-400 group-hover:text-white transition-colors flex-shrink-0" />
@@ -67,7 +69,7 @@ export function OrganizationSwitcher() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="w-[240px] bg-[#1c1c1c] border-white/10">
           <DropdownMenuLabel className="text-xs text-gray-400 uppercase tracking-wider">
-            Workspaces
+            {t('common.workspaces')}
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-white/10" />
           
@@ -88,7 +90,9 @@ export function OrganizationSwitcher() {
                   </div>
                   <div className="flex flex-col overflow-hidden">
                     <span className="text-sm font-medium text-white truncate">{org.name}</span>
-                    <span className="text-[10px] text-gray-400 capitalize">{org.role.toLowerCase()}</span>
+                    <span className="text-[10px] text-gray-400 capitalize">
+                      {org.role === 'OWNER' ? 'OWNER' : t(`common.role${org.role.charAt(0).toUpperCase() + org.role.slice(1).toLowerCase()}`)}
+                    </span>
                   </div>
                 </div>
                 {org.id === currentOrganizationId && (
@@ -106,7 +110,7 @@ export function OrganizationSwitcher() {
             }}
           >
             <PlusCircle className="w-4 h-4" />
-            <span className="text-sm">Create Workspace</span>
+            <span className="text-sm">{t('common.createWorkspace')}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

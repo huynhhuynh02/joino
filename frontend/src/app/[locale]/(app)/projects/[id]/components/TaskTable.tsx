@@ -25,9 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
   ChevronDown,
@@ -37,8 +35,6 @@ import {
   MoreHorizontal,
   Trash2,
   ExternalLink,
-  Copy,
-  GripVertical,
   MessageSquare,
   Paperclip,
   Calendar,
@@ -52,6 +48,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
+import { useTranslations } from 'next-intl';
 
 // ────────────────────────────────────────────────
 // Types
@@ -68,21 +65,11 @@ interface ColumnDef {
   sortable: boolean;
 }
 
-const DEFAULT_COLUMNS: ColumnDef[] = [
-  { key: 'title',     label: 'Task Name',   width: 360, visible: true,  icon: <CheckCircle2 className="w-3.5 h-3.5" />, sortable: true  },
-  { key: 'status',    label: 'Status',      width: 140, visible: true,  icon: <Circle className="w-3.5 h-3.5" />,       sortable: true  },
-  { key: 'priority',  label: 'Priority',    width: 120, visible: true,  icon: <Flag className="w-3.5 h-3.5" />,         sortable: true  },
-  { key: 'assignee',  label: 'Assignee',    width: 160, visible: true,  icon: <User className="w-3.5 h-3.5" />,         sortable: true  },
-  { key: 'startDate', label: 'Start Date',  width: 130, visible: true,  icon: <Calendar className="w-3.5 h-3.5" />,     sortable: true  },
-  { key: 'dueDate',   label: 'Due Date',    width: 130, visible: true,  icon: <Calendar className="w-3.5 h-3.5" />,     sortable: true  },
-  { key: 'comments',  label: 'Comments',    width: 100, visible: true,  icon: <MessageSquare className="w-3.5 h-3.5" />,sortable: false },
-  { key: 'updated',   label: 'Last Updated',width: 140, visible: false, icon: <Clock className="w-3.5 h-3.5" />,        sortable: true  },
-];
-
 // ────────────────────────────────────────────────
 // Status Picker Cell
 // ────────────────────────────────────────────────
 function StatusCell({ task, onUpdate }: { task: any; onUpdate: (id: string, data: any) => void }) {
+  const t = useTranslations();
   const conf = STATUS_CONFIG[task.status as keyof typeof STATUS_CONFIG];
 
   const handleClick = (e: React.MouseEvent) => e.stopPropagation();
@@ -92,7 +79,7 @@ function StatusCell({ task, onUpdate }: { task: any; onUpdate: (id: string, data
       <DropdownMenuTrigger asChild onClick={handleClick}>
         <button className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted transition-colors group w-full text-left">
           <span className={cn('w-2 h-2 rounded-full flex-shrink-0', conf?.dotColor)} />
-          <span className="text-xs text-foreground/80 truncate">{conf?.label}</span>
+          <span className="text-xs text-foreground/80 truncate">{t(`status.${task.status}`)}</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-40 p-1">
@@ -103,7 +90,7 @@ function StatusCell({ task, onUpdate }: { task: any; onUpdate: (id: string, data
             onClick={() => onUpdate(task.id, { status: key })}
           >
             <span className={cn('w-2 h-2 rounded-full', val.dotColor)} />
-            {val.label}
+            {t(`status.${key}`)}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -115,6 +102,7 @@ function StatusCell({ task, onUpdate }: { task: any; onUpdate: (id: string, data
 // Priority Picker Cell
 // ────────────────────────────────────────────────
 function PriorityCell({ task, onUpdate }: { task: any; onUpdate: (id: string, data: any) => void }) {
+  const t = useTranslations();
   const conf = PRIORITY_CONFIG[task.priority as keyof typeof PRIORITY_CONFIG];
 
   const handleClick = (e: React.MouseEvent) => e.stopPropagation();
@@ -124,7 +112,7 @@ function PriorityCell({ task, onUpdate }: { task: any; onUpdate: (id: string, da
       <DropdownMenuTrigger asChild onClick={handleClick}>
         <button className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted transition-colors w-full text-left">
           <span className={cn('w-2 h-2 rounded-full flex-shrink-0', conf?.dotColor)} />
-          <span className="text-xs text-foreground/80 truncate">{conf?.label}</span>
+          <span className="text-xs text-foreground/80 truncate">{t(`priority.${task.priority}`)}</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-36 p-1">
@@ -135,7 +123,7 @@ function PriorityCell({ task, onUpdate }: { task: any; onUpdate: (id: string, da
             onClick={() => onUpdate(task.id, { priority: key })}
           >
             <span className={cn('w-2 h-2 rounded-full', val.dotColor)} />
-            {val.label}
+            {t(`priority.${key}`)}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -165,12 +153,6 @@ function TitleCell({
 
   useEffect(() => { setVal(task.title); }, [task.title]);
 
-  const startEdit = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setEditing(true);
-    setTimeout(() => inputRef.current?.select(), 50);
-  };
-
   const commit = () => {
     setEditing(false);
     const trimmed = val.trim();
@@ -188,7 +170,6 @@ function TitleCell({
 
   return (
     <div className="flex items-center gap-2 w-full group/title">
-      {/* Checkbox */}
       <div className="opacity-0 group-hover/title:opacity-100 transition-opacity flex-shrink-0" onClick={(e) => e.stopPropagation()}>
         <Checkbox
           checked={selected}
@@ -197,14 +178,12 @@ function TitleCell({
         />
       </div>
 
-      {/* Subtask indicator */}
       {task.subtasks?.length > 0 && (
         <span className="text-[10px] text-muted-foreground/60 bg-muted rounded px-1 flex-shrink-0">
           {task.subtasks.length}
         </span>
       )}
 
-      {/* Title */}
       {editing ? (
         <input
           ref={inputRef}
@@ -218,16 +197,17 @@ function TitleCell({
         />
       ) : (
         <span
-          className="flex-1 text-sm font-medium text-foreground group-hover/title:text-primary transition-colors truncate cursor-pointer min-w-0"
-          onDoubleClick={startEdit}
+          className={cn(
+            "flex-1 text-sm font-medium text-foreground group-hover/title:text-primary transition-colors truncate cursor-pointer min-w-0",
+            task.status === 'DONE' && 'line-through text-muted-foreground/40'
+          )}
+          onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); setTimeout(() => inputRef.current?.select(), 50); }}
           onClick={onOpen}
         >
           {task.title}
-          {task.status === 'DONE' && <span className="ml-1 line-through text-muted-foreground/40"></span>}
         </span>
       )}
 
-      {/* Meta badges */}
       <div className="flex items-center gap-1.5 flex-shrink-0 opacity-0 group-hover/title:opacity-100 transition-opacity ml-auto">
         {task._count?.comments > 0 && (
           <span className="flex items-center text-[10px] text-muted-foreground/60 gap-0.5">
@@ -264,9 +244,21 @@ function SortIcon({ field, sortField, sortDir }: { field: string; sortField: str
 // Main TaskTable Component
 // ────────────────────────────────────────────────
 export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: string }) {
+  const t = useTranslations();
   const queryClient = useQueryClient();
   const setSelectedTaskId = useUIStore((s) => s.setSelectedTaskId);
   const openCreateTask = useUIStore((s) => s.openCreateTask);
+
+  const DEFAULT_COLUMNS: ColumnDef[] = [
+    { key: 'title',     label: t('common.taskName'),   width: 360, visible: true,  icon: <CheckCircle2 className="w-3.5 h-3.5" />, sortable: true  },
+    { key: 'status',    label: t('common.status'),      width: 140, visible: true,  icon: <Circle className="w-3.5 h-3.5" />,       sortable: true  },
+    { key: 'priority',  label: t('common.priority'),    width: 120, visible: true,  icon: <Flag className="w-3.5 h-3.5" />,         sortable: true  },
+    { key: 'assignee',  label: t('common.assignee'),    width: 160, visible: true,  icon: <User className="w-3.5 h-3.5" />,         sortable: true  },
+    { key: 'startDate', label: t('common.startDate'),   width: 130, visible: true,  icon: <Calendar className="w-3.5 h-3.5" />,     sortable: true  },
+    { key: 'dueDate',   label: t('common.noDueDate'),    width: 130, visible: true,  icon: <Calendar className="w-3.5 h-3.5" />,     sortable: true  },
+    { key: 'comments',  label: t('common.comments'),    width: 100, visible: true,  icon: <MessageSquare className="w-3.5 h-3.5" />,sortable: false },
+    { key: 'updated',   label: t('common.lastUpdated'), width: 140, visible: false, icon: <Clock className="w-3.5 h-3.5" />,        sortable: true  },
+  ];
 
   const [sortField, setSortField] = useState<SortField>('createdAt');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
@@ -353,7 +345,6 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
     });
   };
 
-  // ── Bulk actions ─────────────────────────────
   const bulkUpdateStatus = (status: string) => {
     selectedIds.forEach(id => updateTask.mutate({ id, data: { status } }));
     setSelectedIds(new Set());
@@ -378,16 +369,14 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
         <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
           <span className="text-2xl opacity-40">📊</span>
         </div>
-        <h3 className="text-sm font-semibold text-foreground">No tasks yet</h3>
-        <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-          Add tasks to track your work in a spreadsheet-style view.
-        </p>
+        <h3 className="text-sm font-semibold text-foreground">{t('common.noTasksTable')}</h3>
+        <p className="text-xs text-muted-foreground mt-1 max-w-xs">{t('common.noTasksSearch')}</p>
         <Button
           size="sm"
           className="mt-4 bg-primary hover:bg-primary-dark text-xs h-8"
           onClick={() => openCreateTask(projectId)}
         >
-          <Plus className="w-3.5 h-3.5 mr-1" /> Add Task
+          <Plus className="w-3.5 h-3.5 mr-1" /> {t('tasks.add')}
         </Button>
       </div>
     );
@@ -401,7 +390,7 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
         {someSelected && (
           <div className="flex items-center gap-2 px-4 py-2 bg-primary/5 border-b border-primary/10 flex-shrink-0 animate-in slide-in-from-top-1 duration-150">
             <span className="text-xs font-semibold text-primary">
-              {selectedIds.size} selected
+              {t('common.selectedCount', { count: selectedIds.size })}
             </span>
             <div className="w-px h-4 bg-primary/20 mx-1" />
 
@@ -409,13 +398,13 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-7 text-xs border-primary/20 text-primary hover:bg-primary/10">
-                  Set Status <ChevronDown className="w-3 h-3 ml-1" />
+                  {t('common.setStatus')} <ChevronDown className="w-3 h-3 ml-1" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-40 p-1">
                 {Object.entries(STATUS_CONFIG).map(([key, val]) => (
                   <DropdownMenuItem key={key} className="text-xs cursor-pointer flex items-center gap-2" onClick={() => bulkUpdateStatus(key)}>
-                    <span className={cn('w-2 h-2 rounded-full', val.dotColor)} /> {val.label}
+                    <span className={cn('w-2 h-2 rounded-full', val.dotColor)} /> {t(`status.${key}`)}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -428,11 +417,11 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
               className="h-7 text-xs border-destructive/20 text-destructive hover:bg-destructive/10"
               onClick={bulkDelete}
             >
-              <Trash2 className="w-3 h-3 mr-1" /> Delete
+              <Trash2 className="w-3 h-3 mr-1" /> {t('common.delete')}
             </Button>
 
             <button className="ml-auto text-xs text-muted-foreground hover:text-foreground" onClick={() => setSelectedIds(new Set())}>
-              Clear
+              {t('common.clear')}
             </button>
           </div>
         )}
@@ -442,7 +431,7 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
           <DropdownMenu open={showColumnPicker} onOpenChange={setShowColumnPicker}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-6 text-[11px] text-muted-foreground hover:text-foreground gap-1">
-                <Eye className="w-3 h-3" /> Columns
+                <Eye className="w-3 h-3" /> {t('common.columns')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 p-1">
@@ -468,10 +457,8 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
         {/* Table */}
         <div className="flex-1 overflow-auto">
           <table className="w-full border-collapse min-w-max">
-            {/* Header */}
             <thead className="bg-secondary/30 sticky top-0 z-10 shadow-[0_1px_0_0_hsl(var(--border))]">
               <tr>
-                {/* Select All */}
                 <th className="w-10 px-3 py-2.5 text-left border-r border-border">
                   <Checkbox
                     checked={allSelected}
@@ -501,15 +488,12 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
                     </div>
                   </th>
                 ))}
-
-                {/* Actions column */}
                 <th className="w-10 px-2 py-2.5 sticky right-0 bg-secondary/30" />
               </tr>
             </thead>
 
-            {/* Body */}
             <tbody className="divide-y divide-border/50">
-              {sortedTasks.map((task, idx) => {
+              {sortedTasks.map((task) => {
                 const overdue = isOverdue(task.dueDate, task.status);
                 const isSelected = selectedIds.has(task.id);
                 const isDone = task.status === 'DONE';
@@ -524,7 +508,6 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
                     )}
                     onClick={() => setSelectedTaskId(task.id)}
                   >
-                    {/* Checkbox */}
                     <td className="w-10 px-3 py-2 border-r border-border" onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         checked={isSelected}
@@ -533,7 +516,6 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
                       />
                     </td>
 
-                    {/* Dynamic cells */}
                     {visibleColumns.map((col) => (
                       <td
                         key={col.key}
@@ -575,7 +557,7 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
                                 <span className="text-xs text-foreground/80 truncate">{task.assignee.name.split(' ')[0]}</span>
                               </>
                             ) : (
-                              <span className="text-xs text-muted-foreground/60 italic">Unassigned</span>
+                              <span className="text-xs text-muted-foreground/60 italic">{t('projects.unassigned')}</span>
                             )}
                           </div>
                         )}
@@ -625,7 +607,6 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
                       </td>
                     ))}
 
-                    {/* Row action menu */}
                     <td
                       className="w-10 px-2 py-1.5 sticky right-0 bg-background group-hover/row:bg-primary/5 transition-colors"
                       onClick={(e) => e.stopPropagation()}
@@ -642,7 +623,7 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
                               className="text-xs cursor-pointer gap-2"
                               onClick={() => setSelectedTaskId(task.id)}
                             >
-                              <ExternalLink className="w-3.5 h-3.5" /> Open detail
+                              <ExternalLink className="w-3.5 h-3.5" /> {t('common.openDetail')}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-border" />
                             {Object.entries(STATUS_CONFIG).map(([key, val]) => (
@@ -652,7 +633,7 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
                                 onClick={() => handleUpdate(task.id, { status: key })}
                               >
                                 <span className={cn('w-2 h-2 rounded-full', val.dotColor)} />
-                                Mark as {val.label}
+                                {t('common.markAs', { label: t(`status.${key}`) })}
                               </DropdownMenuItem>
                             ))}
                             <DropdownMenuSeparator className="bg-border" />
@@ -660,7 +641,7 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
                               className="text-xs cursor-pointer gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
                               onClick={() => deleteTask.mutate(task.id)}
                             >
-                              <Trash2 className="w-3.5 h-3.5" /> Delete task
+                              <Trash2 className="w-3.5 h-3.5" /> {t('common.delete')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -672,21 +653,19 @@ export function TaskTable({ tasks, projectId }: { tasks: any[]; projectId: strin
             </tbody>
           </table>
 
-          {/* Add Row Footer */}
           <div
             className="flex items-center gap-2 px-3 py-2 border-t border-dashed border-border hover:bg-muted/30 cursor-pointer group/add transition-colors"
             onClick={() => openCreateTask(projectId)}
           >
             <Plus className="w-3.5 h-3.5 text-muted-foreground/30 group-hover/add:text-primary transition-colors" />
             <span className="text-xs text-muted-foreground group-hover/add:text-primary transition-colors">
-              Add task
+              {t('tasks.add')}
             </span>
           </div>
 
-          {/* Row count footer */}
           <div className="px-4 py-2 text-[11px] text-muted-foreground/60 border-t border-border">
-            {sortedTasks.length} task{sortedTasks.length !== 1 ? 's' : ''}
-            {someSelected && ` · ${selectedIds.size} selected`}
+            {sortedTasks.length} {t('common.taskCount', { count: sortedTasks.length })}
+            {someSelected && ` · ${t('common.selectedCount', { count: selectedIds.size })}`}
           </div>
         </div>
       </div>

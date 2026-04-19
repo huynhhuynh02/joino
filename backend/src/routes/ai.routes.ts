@@ -39,6 +39,7 @@ router.post('/generate-task', async (req, res, next) => {
 
     res.json({ success: true, data: aiData });
   } catch (err: any) {
+    console.error('[AI ROUTE ERROR] GenerateTask:', err.message);
     if (err.message.includes('GEMINI_API_KEY')) {
       return res.status(400).json({ success: false, message: 'Gemini API Key is missing on the server.' });
     }
@@ -76,11 +77,14 @@ router.post('/summarize-task/:taskId', async (req, res, next) => {
     `;
 
     const summary = await askGemini(prompt, false);
-
     res.json({ success: true, data: summary });
   } catch (err: any) {
+    console.error('[AI ROUTE ERROR] Summarize:', err.message);
     if (err.message.includes('GEMINI_API_KEY')) {
       return res.status(400).json({ success: false, message: 'Gemini API Key is missing on the server.' });
+    }
+    if (err.message.includes('429')) {
+      return res.status(429).json({ success: false, message: 'AI service is currently overloaded. Please try again later.' });
     }
     next(err);
   }

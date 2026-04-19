@@ -2,12 +2,13 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { Bell, Check, Trash2, MailOpen } from 'lucide-react';
+import { Bell, Check, MailOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatDateRelative } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface Notification {
   id: string;
@@ -20,6 +21,7 @@ interface Notification {
 }
 
 export default function InboxPage() {
+  const t = useTranslations();
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   
@@ -67,22 +69,22 @@ export default function InboxPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Bell className="w-6 h-6 text-primary" />
-            Inbox
+            {t('inbox.title')}
             {unreadCount > 0 && (
               <Badge className="bg-primary/20 text-primary hover:bg-primary/30 border-none ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold" variant="outline">
-                {unreadCount} new
+                {t('inbox.newCount', { count: unreadCount })}
               </Badge>
             )}
           </h1>
           <p className="text-muted-foreground/80 mt-1 text-sm">
-            Updates and notifications from your projects.
+            {t('inbox.description')}
           </p>
         </div>
         
         {unreadCount > 0 && (
           <Button onClick={() => markAllRead.mutate()} variant="outline" size="sm" className="gap-2 shrink-0">
             <Check className="w-4 h-4" />
-            Mark all read
+            {t('inbox.markAllRead')}
           </Button>
         )}
       </div>
@@ -93,13 +95,13 @@ export default function InboxPage() {
             onClick={() => setFilter('all')}
             className={`px-4 py-1.5 text-sm font-medium rounded transition-colors ${filter === 'all' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
           >
-            All
+            {t('inbox.all')}
           </button>
           <button
             onClick={() => setFilter('unread')}
             className={`px-4 py-1.5 text-sm font-medium rounded transition-colors ${filter === 'unread' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
           >
-            Unread
+            {t('inbox.unread')}
           </button>
         </div>
       </div>
@@ -120,8 +122,8 @@ export default function InboxPage() {
         ) : groupedNotifications.length === 0 ? (
           <div className="bg-card rounded-xl border border-border/50 flex flex-col items-center justify-center h-80 text-muted-foreground/40">
             <MailOpen className="w-16 h-16 mb-4 opacity-20" />
-            <p className="text-lg font-medium text-muted-foreground">You're all caught up!</p>
-            <p className="text-sm">No notifications found.</p>
+            <p className="text-lg font-medium text-muted-foreground">{t('inbox.allCaughtUp')}</p>
+            <p className="text-sm">{t('inbox.noNotifications')}</p>
           </div>
         ) : (
           groupedNotifications.map(([projectId, group]) => (
@@ -133,7 +135,7 @@ export default function InboxPage() {
                     <h3 className="font-semibold text-foreground/90 text-sm">{group.project.name}</h3>
                   </>
                 ) : (
-                  <h3 className="font-semibold text-foreground/90 text-sm px-1.5">Workspace</h3>
+                  <h3 className="font-semibold text-foreground/90 text-sm px-1.5">{t('inbox.workspace')}</h3>
                 )}
                 <Badge variant="secondary" className="ml-auto text-[10px] font-bold bg-muted/50 text-muted-foreground/60 border-none h-5">
                   {group.items.length}

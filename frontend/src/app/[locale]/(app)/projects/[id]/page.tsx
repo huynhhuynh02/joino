@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useUIStore } from '@/stores/uiStore';
-import { Plus, ListTodo, KanbanSquare, CalendarDays, Table2, Loader2, Search, Settings, Sparkles } from 'lucide-react';
+import { Plus, ListTodo, KanbanSquare, CalendarDays, Table2, Loader2, Settings, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TaskList } from './components/TaskList';
@@ -21,12 +21,14 @@ import {
   type GroupByField,
 } from '@/components/tasks/TaskFilterBar';
 import { use } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface ProjectDetailProps {
   params: Promise<{ id: string }>;
 }
 
 export default function ProjectDetailPage({ params }: ProjectDetailProps) {
+  const t = useTranslations();
   const { id: projectId } = use(params);
   const openCreateTask = useUIStore((s) => s.openCreateTask);
   const [view, setView] = useState<'list' | 'board' | 'gantt' | 'table' | 'ai'>('list');
@@ -49,15 +51,23 @@ export default function ProjectDetailPage({ params }: ProjectDetailProps) {
 
   const handleExportCSV = () => {
     if (!tasks || tasks.length === 0) return;
-    const headers = ['ID', 'Title', 'Status', 'Priority', 'Start Date', 'Due Date', 'Assignee'];
-    const rows = tasks.map(t => [
-      t.id, 
-      `"${t.title.replace(/"/g, '""')}"`, 
-      t.status, 
-      t.priority, 
-      t.startDate || '', 
-      t.dueDate || '', 
-      t.assignee?.name || 'Unassigned'
+    const headers = [
+      t('tasks.id'), 
+      t('tasks.title'), 
+      t('tasks.status'), 
+      t('tasks.priority'), 
+      t('tasks.startDate'), 
+      t('tasks.dueDate'), 
+      t('tasks.assignee')
+    ];
+    const rows = tasks.map(tk => [
+      tk.id, 
+      `"${tk.title.replace(/"/g, '""')}"`, 
+      tk.status, 
+      tk.priority, 
+      tk.startDate || '', 
+      tk.dueDate || '', 
+      tk.assignee?.name || t('projects.unassigned')
     ]);
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
@@ -78,7 +88,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailProps) {
   }
 
   if (!project) {
-    return <div className="p-8 text-center text-muted-foreground bg-background h-full">Project not found</div>;
+    return <div className="p-8 text-center text-muted-foreground bg-background h-full">{t('projects.notFound')}</div>;
   }
 
   return (
@@ -125,7 +135,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailProps) {
             size="icon"
             className="h-8 w-8 text-muted-foreground border-border bg-card hover:bg-muted"
             onClick={() => setSettingsOpen(true)}
-            title="Project Settings"
+            title={t('projects.settings')}
           >
             <Settings className="w-4 h-4" />
           </Button>
@@ -136,7 +146,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailProps) {
             onClick={() => openCreateTask(projectId)}
           >
             <Plus className="w-3.5 h-3.5" />
-            Add Task
+            {t('tasks.add')}
           </Button>
         </div>
       </div>
@@ -146,19 +156,19 @@ export default function ProjectDetailPage({ params }: ProjectDetailProps) {
         <Tabs value={view} onValueChange={(v) => setView(v as typeof view)}>
           <TabsList className="h-7 bg-muted p-0.5 border border-border/50">
             <TabsTrigger value="list" className="h-6 text-xs px-2.5 rounded data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm">
-              <ListTodo className="w-3.5 h-3.5 mr-1.5" /> List
+              <ListTodo className="w-3.5 h-3.5 mr-1.5" /> {t('common.list')}
             </TabsTrigger>
             <TabsTrigger value="board" className="h-6 text-xs px-2.5 rounded data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm">
-              <KanbanSquare className="w-3.5 h-3.5 mr-1.5" /> Board
+              <KanbanSquare className="w-3.5 h-3.5 mr-1.5" /> {t('common.board')}
             </TabsTrigger>
             <TabsTrigger value="gantt" className="h-6 text-xs px-2.5 rounded data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm">
-              <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> Gantt
+              <CalendarDays className="w-3.5 h-3.5 mr-1.5" /> {t('projects.gantt')}
             </TabsTrigger>
             <TabsTrigger value="table" className="h-6 text-xs px-2.5 rounded data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm">
-              <Table2 className="w-3.5 h-3.5 mr-1.5" /> Table
+              <Table2 className="w-3.5 h-3.5 mr-1.5" /> {t('projects.table')}
             </TabsTrigger>
             <TabsTrigger value="ai" className="h-6 text-xs px-2.5 rounded data-[state=active]:bg-card data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm text-indigo-500 font-medium">
-              <Sparkles className="w-3.5 h-3.5 mr-1.5" /> AI Insights
+              <Sparkles className="w-3.5 h-3.5 mr-1.5" /> {t('projects.aiInsights')}
             </TabsTrigger>
           </TabsList>
         </Tabs>

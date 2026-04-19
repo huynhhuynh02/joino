@@ -8,9 +8,10 @@ import { useUIStore } from '@/stores/uiStore';
 import { cn, STATUS_CONFIG } from '@/lib/utils';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, Folder, Clock, CheckSquare } from 'lucide-react';
+import { Search, Loader2, Folder, Clock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 interface SearchResult {
   tasks: any[];
@@ -19,6 +20,7 @@ interface SearchResult {
 }
 
 export function GlobalSearch({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
+  const t = useTranslations();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -149,7 +151,7 @@ export function GlobalSearch({ open, onOpenChange }: { open: boolean, onOpenChan
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search projects, tasks... (Type to search)"
+            placeholder={t('search.placeholder')}
             className="flex-1 bg-transparent border-0 shadow-none outline-none focus-visible:ring-0 text-base px-0 text-foreground"
             autoFocus
           />
@@ -162,12 +164,12 @@ export function GlobalSearch({ open, onOpenChange }: { open: boolean, onOpenChan
               {recentSearches.length > 0 ? (
                 <div className="mb-2">
                   <div className="px-5 py-2 text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider flex justify-between">
-                    Recent Searches
+                    {t('search.recent')}
                     <button 
                       onClick={() => { setRecentSearches([]); localStorage.removeItem('pjmbro-recent-searches'); }}
                       className="text-muted-foreground/60 hover:text-destructive lowercase text-[10px]"
                     >
-                      clear all
+                      {t('search.clearAll')}
                     </button>
                   </div>
                   {recentSearches.map((s, idx) => (
@@ -186,18 +188,18 @@ export function GlobalSearch({ open, onOpenChange }: { open: boolean, onOpenChan
               ) : (
                 <div className="px-6 py-8 text-center text-muted-foreground/60 text-sm">
                    <Search className="w-10 h-10 mx-auto text-muted-foreground/20 mb-2 opacity-50" />
-                  Type to search across everything
+                  {t('search.typeToSearch')}
                 </div>
               )}
             </div>
           ) : isLoading ? (
             <div className="px-6 py-12 text-center text-muted-foreground/60 text-sm flex flex-col items-center">
               <Loader2 className="w-6 h-6 animate-spin text-primary mb-2" />
-              Searching...
+              {t('search.searching')}
             </div>
           ) : data?.total === 0 ? (
             <div className="px-6 py-8 text-center text-muted-foreground text-sm">
-               No results found for "<span className="text-foreground font-medium">{debouncedQuery}</span>"
+               {t('search.noResults', { query: debouncedQuery })}
             </div>
           ) : (
             <div className="py-2">
@@ -205,9 +207,9 @@ export function GlobalSearch({ open, onOpenChange }: { open: boolean, onOpenChan
               {data?.projects && data.projects.length > 0 && (
                 <div className="mb-2">
                   <div className="px-4 py-1.5 text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">
-                    Projects
+                    {t('search.projects')}
                   </div>
-                  {data.projects.map((p, idx) => {
+                  {data.projects.map((p) => {
                     const absIdx = flatItems.findIndex(i => i.type === 'project' && i.ref.id === p.id);
                     return (
                       <div
@@ -230,7 +232,7 @@ export function GlobalSearch({ open, onOpenChange }: { open: boolean, onOpenChan
                             {p.name}
                           </p>
                            <p className="text-xs text-muted-foreground flex items-center">
-                            {p._count.tasks} task{p._count.tasks !== 1 ? 's' : ''}
+                            {p._count.tasks} {t('common.taskCount', { count: p._count.tasks })}
                           </p>
                         </div>
                       </div>
@@ -243,7 +245,7 @@ export function GlobalSearch({ open, onOpenChange }: { open: boolean, onOpenChan
               {data?.tasks && data.tasks.length > 0 && (
                 <div>
                   <div className="px-4 py-1.5 text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider">
-                    Tasks
+                    {t('search.tasks')}
                   </div>
                   {data.tasks.map((t) => {
                     const stConf = STATUS_CONFIG[t.status as keyof typeof STATUS_CONFIG];
@@ -292,10 +294,10 @@ export function GlobalSearch({ open, onOpenChange }: { open: boolean, onOpenChan
         {debouncedQuery.length > 0 && flatItems.length > 0 && (
            <div className="px-4 py-2 border-t border-border/50 bg-muted/20 text-[10px] text-muted-foreground/60 flex items-center justify-between">
             <div>
-              <span className="font-semibold text-muted-foreground/80">↑↓</span> to navigate
+              <span className="font-semibold text-muted-foreground/80">↑↓</span> {t('search.navigate')}
             </div>
             <div>
-              <span className="font-semibold text-muted-foreground/80">Enter</span> to select
+              <span className="font-semibold text-muted-foreground/80">Enter</span> {t('search.select')}
             </div>
           </div>
         )}

@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -12,7 +14,8 @@ import { useRouter } from 'next/navigation';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials } from '@/lib/utils';
+import { getInitials, cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 interface ProjectSettingsModalProps {
   projectId: string;
@@ -27,6 +30,7 @@ const PRESET_COLORS = [
 ];
 
 export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectSettingsModalProps) {
+  const t = useTranslations();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
@@ -96,16 +100,16 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-labels', projectId] });
       setNewLabelName('');
-      toast({ title: 'Label created' });
+      toast({ title: t('projects.labelCreated') });
     },
-    onError: () => toast({ title: 'Failed to create label', variant: 'destructive' })
+    onError: () => toast({ title: t('common.updatedError'), variant: 'destructive' })
   });
 
   const deleteLabel = useMutation({
     mutationFn: (labelId: string) => api.delete(`/api/labels/${labelId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-labels', projectId] });
-      toast({ title: 'Label deleted' });
+      toast({ title: t('projects.labelDeleted') });
     },
   });
 
@@ -116,16 +120,16 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
       setNewFieldName('');
       setNewFieldType('TEXT');
       setNewFieldOptions([]);
-      toast({ title: 'Custom field created' });
+      toast({ title: t('projects.fieldCreated') });
     },
-    onError: () => toast({ title: 'Failed to create field', variant: 'destructive' })
+    onError: () => toast({ title: t('common.updatedError'), variant: 'destructive' })
   });
 
   const deleteField = useMutation({
     mutationFn: (fieldId: string) => api.delete(`/api/custom-fields/${fieldId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-custom-fields', projectId] });
-      toast({ title: 'Custom field deleted' });
+      toast({ title: t('projects.fieldDeleted') });
     },
   });
 
@@ -135,16 +139,16 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
       queryClient.invalidateQueries({ queryKey: ['project-members', projectId] });
       setSelectedUser(null);
       setMemberSearch('');
-      toast({ title: 'Member added to project' });
+      toast({ title: t('projects.memberAdded') });
     },
-    onError: () => toast({ title: 'Failed to add member', variant: 'destructive' })
+    onError: () => toast({ title: t('common.updatedError'), variant: 'destructive' })
   });
 
   const removeMember = useMutation({
     mutationFn: (userId: string) => api.delete(`/api/projects/${projectId}/members/${userId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-members', projectId] });
-      toast({ title: 'Member removed' });
+      toast({ title: t('projects.memberRemoved') });
     },
   });
 
@@ -179,7 +183,7 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      toast({ title: 'Project updated' });
+      toast({ title: t('projects.projectUpdated') });
     },
   });
 
@@ -187,7 +191,7 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
     mutationFn: () => api.delete(`/api/projects/${projectId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      toast({ title: 'Project deleted' });
+      toast({ title: t('projects.projectDeleted') });
       onOpenChange(false);
       router.push('/dashboard');
     },
@@ -206,9 +210,9 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
         <DialogHeader className="px-6 py-4 border-b border-border/50 bg-muted/20 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-foreground">
             <Settings className="w-5 h-5 text-muted-foreground" />
-            Project Settings
+            {t('projects.projectSettings')}
           </DialogTitle>
-          <DialogDescription className="sr-only">Manage project labels and other settings</DialogDescription>
+          <DialogDescription className="sr-only">{t('projects.projectSettings')}</DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="general" className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -218,39 +222,39 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none py-3 px-4 transition-all text-muted-foreground"
             >
               <Box className="w-4 h-4 mr-2" />
-              General
+              {t('projects.general')}
             </TabsTrigger>
             <TabsTrigger 
               value="labels" 
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 px-4"
             >
               <Tag className="w-4 h-4 mr-2" />
-              Labels
+              {t('projects.labels')}
             </TabsTrigger>
             <TabsTrigger 
               value="custom_fields" 
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 px-4"
             >
               <ListFilter className="w-4 h-4 mr-2" />
-              Custom Fields
+              {t('projects.customFields')}
             </TabsTrigger>
             <TabsTrigger 
               value="members" 
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 px-4"
             >
               <Users className="w-4 h-4 mr-2" />
-              Members
+              {t('common.team')}
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="general" className="flex-1 overflow-y-auto p-6 pb-20 m-0 outline-none data-[state=active]:block">
             {loadingProject ? (
-              <div className="text-center py-4 text-xs text-muted-foreground">Loading project details...</div>
+              <div className="text-center py-4 text-xs text-muted-foreground">{t('projects.loading')}</div>
             ) : (
               <>
                 <form onSubmit={handleUpdateGeneral} className="space-y-6">
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-foreground/80">Project Name</Label>
+                    <Label className="text-sm font-semibold text-foreground/80">{t('projects.projectName')}</Label>
                     <Input
                       value={projectName}
                       onChange={(e) => setProjectName(e.target.value)}
@@ -260,14 +264,17 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-foreground/80">Project Color</Label>
+                    <Label className="text-sm font-semibold text-foreground/80">{t('projects.projectColor')}</Label>
                     <div className="flex flex-wrap gap-2">
                       {PRESET_COLORS.map(c => (
                         <button
                           key={c}
                           type="button"
                           onClick={() => setProjectColor(c)}
-                          className={`w-8 h-8 rounded-md hover:scale-110 transition-transform ${projectColor === c ? 'ring-2 ring-offset-2 ring-offset-background ring-primary border-2 border-background' : 'opacity-80 hover:opacity-100'}`}
+                          className={cn(
+                            "w-8 h-8 rounded-md hover:scale-110 transition-transform",
+                            projectColor === c ? "ring-2 ring-offset-2 ring-offset-background ring-primary border-2 border-background" : "opacity-80 hover:opacity-100"
+                          )}
                           style={{ backgroundColor: c }}
                         />
                       ))}
@@ -275,17 +282,17 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                   </div>
 
                   <Button type="submit" disabled={!projectName.trim() || updateProject.isPending} className="w-full">
-                    {updateProject.isPending ? 'Saving...' : 'Save Changes'}
+                    {updateProject.isPending ? t('common.saving') : t('common.saveChanges')}
                   </Button>
                 </form>
 
                 <div className="pt-6 border-t border-border space-y-4">
                   <div>
                     <h3 className="text-sm font-semibold text-destructive flex items-center gap-1.5">
-                      <AlertTriangle className="w-4 h-4" /> Danger Zone
+                      <AlertTriangle className="w-4 h-4" /> {t('projects.dangerZone')}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Once you delete a project, there is no going back. All tasks, files, and comments will be permanently erased.
+                      {t('projects.deleteProjectDesc')}
                     </p>
                   </div>
                   <Button 
@@ -295,7 +302,7 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                       setDeleteProjectConfirmOpen(true);
                     }}
                   >
-                    Delete Project
+                    {t('projects.deleteProject')}
                   </Button>
                 </div>
               </>
@@ -306,30 +313,33 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
             <div className="p-6 border-b border-border/50 bg-muted/20 shrink-0">
               <form onSubmit={handleCreateLabel} className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-foreground/80">Create new label</Label>
+                  <Label className="text-xs font-semibold text-foreground/80">{t('projects.createNewLabel')}</Label>
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Label name (e.g., Bug, Feature)"
+                      placeholder="(e.g., Bug, Feature)"
                       value={newLabelName}
                       onChange={(e) => setNewLabelName(e.target.value)}
                       className="h-8 text-sm bg-background border-border text-foreground"
                       maxLength={30}
                     />
                     <Button type="submit" disabled={!newLabelName.trim() || createLabel.isPending} size="sm" className="h-8">
-                      <Plus className="w-4 h-4 mr-1" /> Add
+                      <Plus className="w-4 h-4 mr-1" /> {t('common.add')}
                     </Button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Pick a color</Label>
+                  <Label className="text-xs text-muted-foreground">{t('projects.projectColor')}</Label>
                   <div className="flex flex-wrap gap-1.5">
                     {PRESET_COLORS.map(c => (
                       <button
                         key={c}
                         type="button"
                         onClick={() => setNewLabelColor(c)}
-                        className={`w-6 h-6 rounded-md hover:scale-110 transition-transform ${newLabelColor === c ? 'ring-2 ring-offset-1 ring-offset-background ring-primary' : ''}`}
+                        className={cn(
+                          "w-6 h-6 rounded-md hover:scale-110 transition-transform",
+                          newLabelColor === c ? "ring-2 ring-offset-1 ring-offset-background ring-primary" : ""
+                        )}
                         style={{ backgroundColor: c }}
                       />
                     ))}
@@ -339,13 +349,13 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
             </div>
 
             <div className="space-y-4">
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Existing Labels</h4>
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t('projects.existingLabels')}</h4>
               
               {loadingLabels ? (
-                <div className="text-center py-4 text-xs text-muted-foreground">Loading labels...</div>
+                <div className="text-center py-4 text-xs text-muted-foreground">{t('projects.loading')}</div>
               ) : labels?.length === 0 ? (
                 <div className="text-center py-8 text-sm text-muted-foreground border border-dashed border-border/50 rounded-lg bg-muted/5">
-                  No labels created yet
+                  {t('projects.noLabels')}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -377,7 +387,7 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
               <form onSubmit={handleCreateField} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-xs font-semibold text-foreground/80">Field Name</Label>
+                    <Label className="text-xs font-semibold text-foreground/80">{t('projects.fieldName')}</Label>
                     <Input
                       placeholder="e.g., Progress %"
                       value={newFieldName}
@@ -386,18 +396,15 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs font-semibold text-foreground/80">Type</Label>
+                    <Label className="text-xs font-semibold text-foreground/80">{t('projects.type')}</Label>
                     <Select value={newFieldType} onValueChange={setNewFieldType}>
                       <SelectTrigger className="h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="TEXT">Text</SelectItem>
-                        <SelectItem value="NUMBER">Number</SelectItem>
-                        <SelectItem value="DATE">Date</SelectItem>
-                        <SelectItem value="DROPDOWN">Dropdown</SelectItem>
-                        <SelectItem value="CHECKBOX">Checkbox</SelectItem>
-                        <SelectItem value="URL">URL</SelectItem>
+                        {['TEXT', 'NUMBER', 'DATE', 'DROPDOWN', 'CHECKBOX', 'URL'].map(type => (
+                          <SelectItem key={type} value={type}>{t(`projects.fieldTypes.${type}`)}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -405,10 +412,10 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
 
                 {newFieldType === 'DROPDOWN' && (
                   <div className="space-y-2 bg-card p-3 rounded-lg border border-border">
-                    <Label className="text-xs text-muted-foreground">Dropdown Options</Label>
+                    <Label className="text-xs text-muted-foreground">{t('projects.dropdownOptions')}</Label>
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Option name"
+                        placeholder={t('projects.optionName')}
                         value={optionInput}
                         onChange={(e) => setOptionInput(e.target.value)}
                         className="h-7 text-[10px]"
@@ -430,19 +437,19 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                 )}
 
                 <Button type="submit" disabled={!newFieldName.trim() || createField.isPending} className="w-full h-8" size="sm">
-                  {createField.isPending ? 'Adding...' : 'Add Custom Field'}
+                  {createField.isPending ? t('common.saving') : t('common.add')}
                 </Button>
               </form>
             </div>
 
             <div className="space-y-4">
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Existing Fields</h4>
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t('projects.existingFields')}</h4>
               
               {loadingFields ? (
-                <div className="text-center py-4 text-xs text-muted-foreground">Loading fields...</div>
+                <div className="text-center py-4 text-xs text-muted-foreground">{t('projects.loading')}</div>
               ) : customFields?.length === 0 ? (
                 <div className="text-center py-8 text-sm text-muted-foreground border border-dashed border-border rounded-lg">
-                  No custom fields defined
+                  {t('projects.noFields')}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -475,12 +482,12 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
             <div className="p-6 border-b border-border/50 bg-muted/20 shrink-0">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-foreground/80">Add member to project</Label>
+                  <Label className="text-xs font-semibold text-foreground/80">{t('projects.addMemberToProject')}</Label>
                   <div className="relative">
                     {!selectedUser ? (
                       <>
                         <Input
-                          placeholder="Search workspace members..."
+                          placeholder={t('projects.searchWorkspaceMembers')}
                           value={memberSearch}
                           onChange={(e) => setMemberSearch(e.target.value)}
                           className="h-9 text-sm pr-10"
@@ -536,9 +543,9 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="MANAGER">Manager</SelectItem>
-                        <SelectItem value="MEMBER">Member</SelectItem>
-                        <SelectItem value="VIEWER">Viewer</SelectItem>
+                        <SelectItem value="MANAGER">{t('common.roleManager')}</SelectItem>
+                        <SelectItem value="MEMBER">{t('common.roleMember')}</SelectItem>
+                        <SelectItem value="VIEWER">{t('projects.roleViewer')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <Button 
@@ -546,7 +553,7 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                       onClick={() => addMember.mutate({ userId: selectedUser.id, role: memberRole })}
                       disabled={addMember.isPending}
                     >
-                      <UserPlus className="w-4 h-4 mr-1" /> Add
+                      <UserPlus className="w-4 h-4 mr-1" /> {t('common.add')}
                     </Button>
                   </div>
                 )}
@@ -554,9 +561,9 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
             </div>
 
             <div className="space-y-4">
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Project Members</h4>
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t('projects.projectMembers')}</h4>
               {loadingMembers ? (
-                <div className="text-center py-4 text-xs text-muted-foreground">Loading members...</div>
+                <div className="text-center py-4 text-xs text-muted-foreground">{t('projects.loading')}</div>
               ) : (
                 <div className="space-y-2">
                   {projectMembers?.map(m => (
@@ -568,7 +575,9 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium text-foreground leading-none">{m.name}</p>
-                          <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold tracking-tighter">{m.memberRole}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold tracking-tighter">
+                            {m.memberRole === 'OWNER' ? t('projects.roleOwner') : t(`common.role${m.memberRole.charAt(0).toUpperCase() + m.memberRole.slice(1).toLowerCase()}`)}
+                          </p>
                         </div>
                       </div>
                       {m.memberRole !== 'OWNER' && (
@@ -596,9 +605,9 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
     <ConfirmDialog
       open={deleteProjectConfirmOpen}
       onOpenChange={setDeleteProjectConfirmOpen}
-      title="Delete Project"
-      description="Are you absolutely sure you want to delete this project? This action cannot be undone and will erase all tasks, comments, and files inside it."
-      confirmText="Delete Project"
+      title={t('projects.confirmDeleteProjectTitle')}
+      description={t('projects.confirmDeleteProjectDesc')}
+      confirmText={t('projects.deleteProject')}
       variant="destructive"
       isLoading={deleteProject.isPending}
       onConfirm={() => {
@@ -611,9 +620,9 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
     <ConfirmDialog
       open={!!labelToDelete}
       onOpenChange={(open) => { if (!open) setLabelToDelete(null); }}
-      title="Delete Label"
-      description={`Are you sure you want to delete the label "${labelToDelete?.name}"? It will be removed from all tasks that currently use it.`}
-      confirmText="Delete"
+      title={t('projects.confirmDeleteLabelTitle')}
+      description={t('projects.confirmDeleteLabelDesc', { name: labelToDelete?.name })}
+      confirmText={t('common.delete')}
       variant="destructive"
       isLoading={deleteLabel.isPending}
       onConfirm={() => {
@@ -628,9 +637,9 @@ export function ProjectSettingsModal({ projectId, open, onOpenChange }: ProjectS
     <ConfirmDialog
       open={!!fieldToDelete}
       onOpenChange={(open) => { if (!open) setFieldToDelete(null); }}
-      title="Delete Custom Field"
-      description={`Are you sure you want to delete the field "${fieldToDelete?.name}"? All data entered into this field for every task in this project will be permanently lost.`}
-      confirmText="Delete"
+      title={t('projects.confirmDeleteFieldTitle')}
+      description={t('projects.confirmDeleteFieldDesc', { name: fieldToDelete?.name })}
+      confirmText={t('common.delete')}
       variant="destructive"
       isLoading={deleteField.isPending}
       onConfirm={() => {

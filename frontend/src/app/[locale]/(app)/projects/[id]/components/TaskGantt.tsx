@@ -1,11 +1,15 @@
+'use client';
+
 import { useState, useMemo } from 'react';
 import { Gantt, Task as GanttTask, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
 import { useUIStore } from '@/stores/uiStore';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useTranslations } from 'next-intl';
 
 export function TaskGantt({ tasks, projectId, color }: { tasks: any[]; projectId: string; color: string }) {
+  const t = useTranslations();
   const setSelectedTaskId = useUIStore((s) => s.setSelectedTaskId);
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.Day);
@@ -50,7 +54,7 @@ export function TaskGantt({ tasks, projectId, color }: { tasks: any[]; projectId
     if (validTasks.length === 0) {
       return [{
         id: 'dummy',
-        name: 'Add a task with dates to see the Gantt chart',
+        name: t('gantt.noTasksWithDates'),
         start: new Date(),
         end: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
         type: 'task',
@@ -61,7 +65,7 @@ export function TaskGantt({ tasks, projectId, color }: { tasks: any[]; projectId
     }
 
     return validTasks;
-  }, [tasks, color]);
+  }, [tasks, color, t]);
 
   const handleTaskChange = (task: GanttTask) => {
     if (task.id === 'dummy') return;
@@ -113,7 +117,7 @@ export function TaskGantt({ tasks, projectId, color }: { tasks: any[]; projectId
               : 'bg-card text-muted-foreground border-border hover:bg-muted'
             }`}
           >
-            {mode}
+            {t(`gantt.${mode}`)}
           </button>
         ))}
       </div>
